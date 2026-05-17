@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;400;500;700&family=Quicksand:wght=500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
@@ -24,7 +24,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        /* 拖曳時被選中項目的樣式 */
         .sortable-ghost {
             opacity: 0.4;
             background-color: #f0fdf4 !important;
@@ -33,18 +32,56 @@
 </head>
 <body class="pb-24 max-w-md mx-auto min-h-screen shadow-xl bg-[#EBF3F0] relative">
 
+    <div id="login-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-6 text-center">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-700 tracking-wide">誰要準備出發？ ✈️</h2>
+                <p class="text-xs text-slate-400 mt-1">請建立或選擇您的旅伴身分以同步記帳與行程</p>
+            </div>
+             
+            <div id="login-users-list" class="grid grid-cols-3 gap-3 py-2"></div>
+
+            <div class="border-t border-slate-100 pt-4 space-y-3">
+                <button onclick="toggleAddUserForm(true)" class="w-full border-2 border-dashed border-emerald-300 text-emerald-600 hover:bg-emerald-50 text-xs py-2.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-user-plus"></i> 建立新成員身分
+                </button>
+            </div>
+
+            <div id="add-user-form" class="hidden text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                <h4 class="text-xs font-bold text-slate-600"><i class="fa-solid fa-id-card mr-1"></i> 設定新成員資料</h4>
+                <div class="flex items-center gap-3">
+                    <label class="relative cursor-pointer group flex-shrink-0">
+                        <div class="w-14 h-14 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden flex items-center justify-center text-slate-400">
+                            <img id="new-avatar-preview" src="" class="w-full h-full object-cover hidden">
+                            <i id="new-avatar-icon" class="fa-solid fa-camera text-sm"></i>
+                        </div>
+                        <input type="file" id="new-user-avatar" accept="image/*" class="hidden" onchange="previewNewUserAvatar(event)">
+                    </label>
+                    <div class="flex-1">
+                        <input type="text" id="new-user-name" placeholder="請輸入旅行暱稱..." class="w-full bg-white border border-slate-200 px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-emerald-400 font-medium">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="toggleAddUserForm(false)" class="w-1/2 bg-slate-200 text-slate-500 text-xs py-2 rounded-xl font-medium">取消</button>
+                    <button id="btn-confirm-user" class="w-1/2 bg-emerald-400 text-white text-xs py-2 rounded-xl font-bold shadow-xs">確認建立</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <header class="bg-white/80 backdrop-blur-md border-b border-emerald-100 p-4 sticky top-0 z-50 flex justify-between items-center rounded-b-3xl shadow-sm">
         <div>
             <h1 class="text-xl font-bold tracking-wide text-slate-700">旅行指南 🌿</h1>
             <p class="text-xs text-slate-400 font-medium mt-0.5">2026.06.01 - 06.06 // 京阪神奈</p>
         </div>
-        <div class="bg-gradient-to-r from-emerald-200 to-blue-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full shadow-inner">
-            Kansai 2026
+        <div id="btn-logout" class="flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-100 pl-2 pr-3 py-1 rounded-full shadow-xs cursor-pointer hover:bg-red-50 hover:border-red-200 group transition">
+            <img id="current-user-avatar" src="" class="w-6 h-6 rounded-full border border-white bg-slate-200 object-cover">
+            <span id="current-user-name" class="text-xs font-bold text-slate-600 group-hover:text-red-500">載入中...</span>
+            <i class="fa-solid fa-right-from-bracket text-[10px] text-slate-400 group-hover:text-red-400 ml-0.5"></i>
         </div>
     </header>
 
     <main class="p-4">
-        
         <section id="sec-plan" class="tab-content space-y-4">
             <div class="bg-white/90 p-4 rounded-2xl border border-emerald-50 shadow-sm space-y-3">
                 <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
@@ -100,7 +137,7 @@
                     <input type="checkbox" id="plan-important" class="rounded border-slate-300 text-emerald-500 focus:ring-emerald-400">
                     <label for="plan-important" class="text-xs text-slate-500 font-medium">標記為重要項目 (會發光)</label>
                 </div>
-                <button onclick="addCustomPlan()" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">加進當日行程表中</button>
+                <button id="btn-add-plan" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">加進當日行程表中</button>
             </div>
         </section>
 
@@ -109,9 +146,7 @@
                 <h2 class="text-lg font-bold text-slate-700">📚 景點深度誌</h2>
                 <span class="text-xs bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-semibold">隨身攻略本</span>
             </div>
-
             <div id="guide-container" class="space-y-4"></div>
-
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-slate-700 flex items-center"><i class="fa-solid fa-bookmark text-blue-400 mr-1.5"></i>新增自訂景點深度筆記</h3>
                 <div class="grid grid-cols-2 gap-2">
@@ -120,7 +155,7 @@
                 </div>
                 <textarea id="guide-desc" rows="3" placeholder="請輸入景點的歷史背景、餵鹿秘訣或必吃美食心得..." class="w-full bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-xs text-slate-600 focus:outline-none focus:border-emerald-200"></textarea>
                 <input type="text" id="guide-tip" placeholder="亮色提示欄 (選填，如：💡 小提示：防風外套必帶)" class="w-full bg-slate-50 border border-slate-100 px-2.5 py-1.5 rounded-xl text-xs focus:outline-none">
-                <button onclick="addCustomGuide()" class="w-full bg-slate-700 text-white text-xs py-2 rounded-xl font-bold shadow-xs">儲存並建立景點筆記</button>
+                <button id="btn-add-guide" class="w-full bg-slate-700 text-white text-xs py-2 rounded-xl font-bold shadow-xs">儲存並建立景點筆記</button>
             </div>
         </section>
 
@@ -133,14 +168,14 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">自訂匯率 (1 JPY = ? TWD)</label>
-                        <input type="number" id="fx-rate" value="0.212" step="0.001" oninput="calcExchange()" class="w-full bg-slate-50/80 border border-slate-100 px-3 py-1.5 rounded-xl text-xs text-center font-bold text-slate-600 focus:outline-none focus:border-emerald-200">
+                        <input type="number" id="fx-rate" value="0.212" step="0.001" class="w-full bg-slate-50/80 border border-slate-100 px-3 py-1.5 rounded-xl text-xs text-center font-bold text-slate-600 focus:outline-none focus:border-emerald-200">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">輸入算式 (如 1200+850)</label>
                         <input type="text" id="calc-expr" placeholder="請輸入算式" class="w-full bg-slate-50/80 border border-slate-100 px-3 py-1.5 rounded-xl text-xs text-center text-slate-600 focus:outline-none focus:border-emerald-200">
                     </div>
                 </div>
-                <button onclick="executeCalc()" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">計算並同步至下方記帳金額</button>
+                <button id="btn-execute-calc" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">計算並同步至下方記帳金額</button>
                 <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl text-center border border-slate-100/50">
                     <div>
                         <span class="text-[10px] text-slate-400 block font-medium">日幣總計</span>
@@ -155,10 +190,10 @@
 
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-slate-700 border-b border-slate-50 pb-1">✍️ 紀錄一筆消費</h3>
-                
+                 
                 <div class="flex bg-slate-100 p-1 rounded-xl">
-                    <button onclick="switchWalletMode('group')" id="wallet-mode-group" class="w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs">群組分帳 (代墊)</button>
-                    <button onclick="switchWalletMode('personal')" id="wallet-mode-personal" class="w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400">個人花費 (私帳)</button>
+                    <button id="wallet-mode-group" class="w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs">群組分帳 (代墊)</button>
+                    <button id="wallet-mode-personal" class="w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400">個人花費 (私帳)</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -169,44 +204,55 @@
                 <div id="group-fields" class="space-y-2">
                     <div>
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">誰先代墊付錢？</label>
-                        <select id="expense-payer" class="w-full bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none">
-                            <option value="我">我</option>
-                            <option value="小明">小明</option>
-                            <option value="小華">小華</option>
-                        </select>
+                        <select id="expense-payer" class="w-full bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none"></select>
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 font-bold block mb-1">分攤給誰？（可多選）</label>
-                        <div class="flex gap-4 p-2 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="expense-sharer" value="我" checked class="rounded border-slate-300 text-emerald-500"> 我</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="expense-sharer" value="小明" checked class="rounded border-slate-300 text-emerald-500"> 小明</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" name="expense-sharer" value="小華" checked class="rounded border-slate-300 text-emerald-500"> 小華</label>
-                        </div>
+                        <div id="expense-sharers-box" class="flex flex-wrap gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs"></div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between bg-emerald-50/40 p-2 rounded-xl border border-emerald-100/30">
                     <label class="cursor-pointer bg-white border border-emerald-100 px-3 py-1.5 rounded-xl text-xs text-emerald-600 font-bold shadow-xs inline-flex items-center hover:bg-emerald-50 transition">
                         <i class="fa-solid fa-camera mr-1.5"></i> 拍照 / 上傳發票
-                        <input type="file" id="expense-img-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                        <input type="file" id="expense-img-input" accept="image/*" class="hidden">
                     </label>
                     <span id="img-status" class="text-[11px] text-slate-400 pr-1">未選取照片</span>
                 </div>
                 <div id="img-preview-box" class="hidden">
                     <img id="img-preview" src="" class="h-14 w-14 object-cover rounded-xl border border-slate-200">
                 </div>
-                <button onclick="addExpense()" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">寫入 LocalStorage 儲存</button>
+                <button id="btn-add-expense" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">寫入 雲端資料庫 儲存 🌐</button>
             </div>
 
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-2 mb-2">
                     <h3 class="font-bold text-sm text-slate-700">記帳歷史明細</h3>
-                    <button onclick="clearExpenses()" class="text-[10px] text-slate-300 hover:text-red-400 font-medium"><i class="fa-solid fa-trash-can mr-1"></i>全部清空</button>
+                    <button id="btn-clear-expenses" class="text-[10px] text-slate-300 hover:text-red-400 font-medium"><i class="fa-solid fa-trash-can mr-1"></i>全部清空</button>
                 </div>
                 <div id="expense-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
                 <div class="border-t border-slate-100 pt-2 mt-3 flex justify-between text-xs font-bold text-slate-700">
                     <span>雙幣消費總計：</span>
                     <span id="expense-total-all" class="text-emerald-600">¥ 0 (NT$ 0)</span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl text-white shadow-md space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700/60 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-scale-balanced text-emerald-400"></i>
+                        <h3 class="font-bold text-sm tracking-wide text-slate-100">⚖️ 債務抵銷與最優結算</h3>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold border border-emerald-500/30">金流最優化</span>
+                </div>
+                 
+                <div id="netting-dashboard" class="space-y-2 text-xs"></div>
+
+                <div class="bg-white/5 rounded-xl p-3 border border-white/10 space-y-2">
+                    <p class="text-[11px] font-bold text-slate-400 tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> 最終金流簡化建議 (日幣結算)
+                    </p>
+                    <div id="netting-suggestions" class="text-xs space-y-2 text-slate-200"></div>
                 </div>
             </div>
         </section>
@@ -226,14 +272,14 @@
                 <h3 class="font-bold text-sm text-slate-700 flex items-center"><i class="fa-solid fa-plus text-emerald-500 mr-1.5"></i>在目前分類新增自訂項目</h3>
                 <div class="flex space-x-2">
                     <input type="text" id="custom-item-text" placeholder="輸入要攜帶或準備的事情" class="flex-1 bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none">
-                    <button onclick="addCustomChecklistItem()" class="bg-emerald-400 text-white font-bold px-4 rounded-xl text-xs shadow-sm hover:bg-emerald-500 transition">新增</button>
+                    <button id="btn-add-checklist" class="bg-emerald-400 text-white font-bold px-4 rounded-xl text-xs shadow-sm hover:bg-emerald-500 transition">新增</button>
                 </div>
             </div>
 
             <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
                 <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-pencil text-yellow-500 mr-1.5"></i>隨手小備忘</h3>
                 <textarea id="memo-input" rows="3" placeholder="在此自由輸入隨手筆記..." class="w-full bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-xs text-slate-600 focus:outline-none focus:border-emerald-200"></textarea>
-                <button onclick="saveMemo()" class="w-full bg-slate-700 text-white text-xs py-2 rounded-xl font-bold shadow-xs">更新儲存備忘錄</button>
+                <button id="btn-save-memo" class="w-full bg-slate-700 text-white text-xs py-2 rounded-xl font-bold shadow-xs">更新儲存備忘錄</button>
                 <div id="memo-display-box" class="mt-2 p-3 bg-slate-50 rounded-xl text-xs text-slate-500 whitespace-pre-wrap leading-relaxed min-h-[50px] border border-slate-100/50"></div>
                 <div id="memo-links-container" class="flex flex-wrap gap-2 mt-2"></div>
             </div>
@@ -243,7 +289,6 @@
             <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm space-y-3">
                 <h3 class="font-bold text-sm text-slate-700 flex items-center"><i class="fa-solid fa-map text-blue-400 mr-2"></i>🗺️ 京阪神奈交通路線圖</h3>
                 <p class="text-xs text-slate-400 leading-relaxed">點擊下方連結可直接在手機上開啟各官方網站的最新高畫質 PDF 路線圖：</p>
-                
                 <div class="grid grid-cols-1 gap-2 pt-1">
                     <a href="https://global.trafficinfo.westjr.co.jp/tc/kansai" target="_blank" class="flex items-center justify-between p-3 bg-blue-50/50 rounded-xl border border-blue-100 hover:bg-blue-50 transition text-xs">
                         <span class="font-bold text-blue-700"><i class="fa-solid fa-train mr-2"></i>JR 西日本 (近畿全區網)</span>
@@ -282,7 +327,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-around items-center py-2.5 z-50 rounded-t-3xl shadow-lg">
@@ -308,8 +352,41 @@
         </button>
     </nav>
 
-    <script>
-        // 預設核心內建行程資料
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7ISA5yXaNuXljUmxfjWSnV1F30jSkqmY",
+            authDomain: "japan-trip-1caaa.firebaseapp.com",
+            projectId: "japan-trip-1caaa",
+            storageBucket: "japan-trip-1caaa.firebasestorage.app",
+            messagingSenderId: "1086615857851",
+            appId: "1:1086615857851:web:d2fe13d44ea1070039d79e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 狀態管理
+        let currentUser = null;
+        let currentDay = 1;
+        let currentListTab = 'pre';
+        let walletMode = 'group';
+        let uploadedImgBase64 = "";
+
+        // 清單與預設資料
+        const preTripList = [
+            { text: "線上預辦登機 (星宇航空可在登機前 48 小時提前報到)", isUrl: false },
+            { text: "入境前填妥 Visit Japan Web (完成後請截圖儲存 QR code)", isUrl: true, url: "https://www.vjw.digital.go.jp/main/#/vjwplo001" },
+            { text: "投保旅遊平安險與不便險", isUrl: false },
+            { text: "購買並確認 E-sim 完成開卡設定準備", isUrl: false },
+            { text: "兌換日幣現鈔 & 手機綁定全支付 (可掃 PayPay 條碼)", isUrl: false }
+        ];
+        const carryOnList = ["護照", "證件", "信用卡", "日幣", "台幣", "耳機", "手機", "筆", "輕便包包", "水壺", "行動電源", "折疊傘", "個人常備藥品"];
+        const checkedBagList = ["換洗衣物", "外套", "日常保養品、化妝品", "眼鏡/隱形眼鏡", "牙刷牙膏牙線", "購物袋", "口罩", "手機充電線器", "鞋子", "梳子", "洗卸用品", "衛生紙、衛生棉", "防曬裝備", "毛巾"];
+
         const defaultTripData = {
             1: [
                 { time: "06:30", title: "桃園國際機場 第一航廈", desc: "準備辦理行李托運與出境通關手續。", isImportant: true },
@@ -319,7 +396,7 @@
                 { time: "15:08", title: "🏯 大阪城天守閣", desc: "參訪壯麗的大吧城公園，漫步城郭護城河。", isImportant: false },
                 { time: "17:08", title: "🔍 柯南青銅雕像", desc: "讀賣電視台前的人氣名偵探柯南雕像打卡點！", isImportant: false },
                 { time: "17:55", title: "🛍️ 心齋橋筋商店街", desc: "開始關西瘋狂購物、藥妝補貨與美食巡禮。", isImportant: false },
-                { time: "18:59", title: "🏃 跑跑人固力果霓虹牌 (Glico Sign)", desc: "道頓堀最具代表性的拍照地標！", isImportant: false }
+                { time: "18:59", title: "跑跑人固力果霓霓虹牌 (Glico Sign)", desc: "道頓堀最具代表性的拍照地標！", isImportant: false }
             ],
             2: [
                 { time: "07:30", title: "從酒店出發", desc: "搭乘京阪電車或 JR 線前往千年古都京都。", isImportant: false },
@@ -337,507 +414,361 @@
             4: [
                 { time: "08:00", title: "退房並整理行李", desc: "將大行李攜帶，搭乘近鐵前往奈良地區。", isImportant: false },
                 { time: "09:20", title: "🦌 奈良公園尋鹿", desc: "與野生梅花鹿親密接觸、餵食鹿仙貝。", isImportant: false },
-                { time: "11:00", title: "⛩️ 東大寺 (Tōdai-ji)", desc: "參觀大佛殿，瞻仰雄偉的奈良大佛與挑戰鑽大佛鼻孔洞。", isImportant: false },
-                { time: "14:00", title: "🚀 通天閣 展望台", desc: "感受大阪懷舊下町風情，體驗巨型通天閣溜滑梯（Tower Slider）。", isImportant: false },
-                { time: "18:00", title: "🏨 入住神戶三宮酒店", desc: "進【Villa Fontaine 神戶三宮】辦理 Check-in。", isImportant: false },
-                { time: "19:30", title: "🎡 Mosaic 摩天輪 & 神戶港塔", desc: "欣賞夜間亮起紅色網織燈光的神戶地標，璀璨動人。", isImportant: false }
+                { time: "11:00", title: "⛩️ 東大寺 (Tōdai-ji)", desc: "參觀大佛殿，瞻仰雄偉的奈良大佛與挑戰鑽大佛鼻孔洞。", isImportant: false }
             ],
-            5: [
-                { time: "08:00", title: "神戶三宮站 出發", desc: "搭乘 JR 新快速電車前往姬路地區。", isImportant: false },
-                { time: "09:30", title: "🏯 世界遺產：姬路城", desc: "全日本保留最完整的「第一神城」，因白牆如白鷺展翅又稱白鷺城。", isImportant: true },
-                { time: "13:00", title: "🐼 南京町 & 北野異人館街", desc: "品嚐特色中華小吃，散步於充滿異國洋流風情的山坡坡道。", isImportant: false },
-                { time: "17:50", title: "🚠 摩耶山纜車登山", desc: "搭乘摩耶Viewline纜車直奔展望台。", isImportant: false },
-                { time: "18:50", title: "✨ 摩耶山掬星台 (日本三大夜景)", desc: "飽覽價值「千萬美金」的璀璨神戶與大阪灣環繞夜景！山上氣溫較低注意防寒。", isImportant: true }
-            ],
-            6: [
-                { time: "08:00", title: "🏨 退房，前往神戶機場", desc: "收拾好滿滿戰利品，準備搭乘港灣島線前往機場。", isImportant: true },
-                { time: "11:40", title: "✈️ 飛機起飛返台", desc: "搭乘回程班機，預計 13:45 降落桃園機場。關西之旅完美落幕！", isImportant: false }
-            ]
+            5: [], 6: []
         };
 
-        // 預設景點誌
-        const defaultGuideData = [
-            { tag: "Osaka // 歷史浪漫", title: "大阪城天守閣", desc: "作為大阪的至高地 Landmark..." },
-            { tag: "Kyoto // 千年信仰", title: "伏見稻荷大社", desc: "全日本3萬座稻荷神社的總本宮..." },
-            { tag: "Kyoto // 三大名勝", title: "音羽山清水寺", desc: "清水寺位於JR「京都站」東北側..." },
-            { tag: "Osaka // 購物商圈", title: "心齋橋", desc: "位於大阪的南區，也就是常說的難波地區..." },
-            { tag: "Nara // 神之使者", title: "奈良公園 & 東大寺", desc: "奈良公園內棲息著超過1,200頭野生梅花鹿...", tip: "🦌 <b>餵鹿秘訣：</b>購買鹿仙貝時儘量保持低調..." },
-            { tag: "Osaka // 浪速地標", title: "新世界通天閣", desc: "初代目通天閣建於1912年，外觀融合了巴黎鐵塔與凱旋門...", tip: "💡 <b>小提示：</b>通天閣周邊的「新世界」充滿懷舊昭和感..." },
-            { tag: "Kobe // 千萬夜景", title: "神戶摩耶山 掬星台", desc: "摩耶山海拔高 702 公尺，其山頂展望台命名為「掬星台」...", tip: "❄️ <b>防寒提醒：</b>即使是6月夏季前夕，摩耶山頂的海拔高加上強風..." },
-            { tag: "Kobe // 夢幻港景", title: "神戶港塔", desc: "神戶港塔是位在神戶最精華且熱鬧的港灣區域..." },
-            { tag: "Himeji // 三大名城", title: "姬路城", desc: "姬路城位於兵庫縣姬路市，是世界上最著名的城堡之一..." },
-            { tag: "Kobe // 異國風情", title: "神戶北野異人館", desc: "位在兵庫縣神戶的「神戶北野異人館」是一處洋溢著異國情調..." }
-        ];
-
-        // 預設打包清單（加入 isDefault 標記用來限制刪除功能）
-        const defaultChecklistData = {
-            pre: [
-                { text: "線上預辦登機 (星宇航空會員可在登機前 48 小時提前報到)", checked: false, isDefault: true },
-                { text: "入境前填妥 Visit Japan Web (完成後請截圖儲存 QR code)", checked: false, isDefault: true },
-                { text: "投保旅遊平安險與不便險", checked: false, isDefault: true },
-                { text: "購買並確認 E-sim 完成開卡設定準備", checked: false, isDefault: true },
-                { text: "兌換日幣現鈔 & 手機綁定全支付 (可掃 PayPay 條碼)", checked: false, isDefault: true }
-            ],
-            carry: [
-                { text: "護照", checked: false, isDefault: true }, { text: "證件", checked: false, isDefault: true }, { text: "信用卡", checked: false, isDefault: true }, 
-                { text: "日幣", checked: false, isDefault: true }, { text: "台幣", checked: false, isDefault: true }, { text: "耳機", checked: false, isDefault: true }, 
-                { text: "手機", checked: false, isDefault: true }, { text: "筆", checked: false, isDefault: true }, { text: "輕便包包", checked: false, isDefault: true }, 
-                { text: "水壺", checked: false, isDefault: true }, { text: "行動電源", checked: false, isDefault: true }, { text: "折疊傘", checked: false, isDefault: true }, 
-                { text: "個人常備藥品", checked: false, isDefault: true }
-            ],
-            check: [
-                { text: "換洗衣物", checked: false, isDefault: true }, { text: "外套", checked: false, isDefault: true }, { text: "日常保養品、化妝品", checked: false, isDefault: true }, 
-                { text: "眼鏡/隱形眼鏡", checked: false, isDefault: true }, { text: "牙刷牙膏牙線", checked: false, isDefault: true }, { text: "購物袋", checked: false, isDefault: true }, 
-                { text: "口罩", checked: false, isDefault: true }, { text: "手機充電線器", checked: false, isDefault: true }, { text: "鞋子", checked: false, isDefault: true }, 
-                { text: "梳子", checked: false, isDefault: true }, { text: "洗卸用品", checked: false, isDefault: true }, { text: "衛生紙、衛生棉", checked: false, isDefault: true }, 
-                { text: "防曬裝備", checked: false, isDefault: true }, { text: "毛巾", checked: false, isDefault: true }
-            ]
-        };
-
-        let tripData = {};
-        let guideData = [];
-        let checklistData = {};
-        let expenses = [];
-        let activeDay = 1;
-        let activeListTab = 'pre';
-        let currentCompressedImgBase64 = "";
-        let walletMode = 'group'; // 預設群組模式
-
-        window.onload = function() {
-            if (localStorage.getItem('tripData_v2')) {
-                tripData = JSON.parse(localStorage.getItem('tripData_v2'));
-            } else {
-                tripData = defaultTripData;
-                saveTripToStorage();
-            }
-
-            if (localStorage.getItem('guideData_v2')) {
-                guideData = JSON.parse(localStorage.getItem('guideData_v2'));
-            } else {
-                guideData = defaultGuideData;
-                saveGuideToStorage();
-            }
-
-            if (localStorage.getItem('checklistData_v2')) {
-                checklistData = JSON.parse(localStorage.getItem('checklistData_v2'));
-            } else {
-                checklistData = defaultChecklistData;
-                saveChecklistToStorage();
-            }
-
-            if (localStorage.getItem('expenses_v2')) {
-                expenses = JSON.parse(localStorage.getItem('expenses_v2'));
-            }
-
-            switchDay(1);
-            renderGuide();
-            renderChecklists();
-            loadMemo();
-            loadExpenses();
-            initSortable();
-        };
-
-        function saveTripToStorage() { localStorage.setItem('tripData_v2', JSON.stringify(tripData)); }
-        function saveGuideToStorage() { localStorage.setItem('guideData_v2', JSON.stringify(guideData)); }
-        function saveChecklistToStorage() { localStorage.setItem('checklistData_v2', JSON.stringify(checklistData)); }
-        function saveExpensesToStorage() { localStorage.setItem('expenses_v2', JSON.stringify(expenses)); }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`sec-${tabName}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-emerald-500');
-                btn.classList.add('text-slate-400');
-            });
-            document.getElementById(`nav-${tabName}`).classList.remove('text-slate-400');
-            document.getElementById(`nav-${tabName}`).classList.add('text-emerald-500');
-        }
-
-        // 行程管理切換與渲染
-        function switchDay(dayNum) {
-            activeDay = dayNum;
-            document.querySelectorAll('.day-btn').forEach(btn => {
-                btn.className = "day-btn flex-shrink-0 w-16 py-2 rounded-xl text-center bg-white text-slate-500 border border-slate-100 text-sm font-medium transition-all duration-200";
-            });
-            document.getElementById(`btn-d${dayNum}`).className = "day-btn flex-shrink-0 w-16 py-2 rounded-xl text-center bg-gradient-to-br from-emerald-400 to-blue-400 text-white font-bold text-sm shadow-sm transition-all duration-200";
-            renderSchedule();
-        }
-
-        function renderSchedule() {
-            const container = document.getElementById('day-schedule-container');
-            container.innerHTML = '';
-            const items = tripData[activeDay] || [];
-
-            items.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = `p-3 rounded-2xl bg-white border border-slate-100 shadow-xs relative group ${item.isImportant ? 'ring-2 ring-emerald-300' : ''}`;
-                li.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">${item.time}</span>
-                        <button onclick="deletePlan(${index})" class="text-slate-300 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <h4 class="font-bold text-sm text-slate-700 mt-1">${item.title}</h4>
-                    <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${item.desc}</p>
-                `;
-                container.appendChild(li);
-            });
-        }
-
-        function addCustomPlan() {
-            const time = document.getElementById('plan-time').value.trim();
-            const title = document.getElementById('plan-title').value.trim();
-            const desc = document.getElementById('plan-desc').value.trim();
-            const isImportant = document.getElementById('plan-important').checked;
-
-            if (!time || !title) return alert('請填寫時間與標題');
-
-            if (!tripData[activeDay]) tripData[activeDay] = [];
-            tripData[activeDay].push({ time, title, desc, isImportant });
-            saveTripToStorage();
-            renderSchedule();
-
-            document.getElementById('plan-time').value = '';
-            document.getElementById('plan-title').value = '';
-            document.getElementById('plan-desc').value = '';
-            document.getElementById('plan-important').checked = false;
-        }
-
-        function deletePlan(index) {
-            if (confirm('確定要刪除這項行程嗎？')) {
-                tripData[activeDay].splice(index, 1);
-                saveTripToStorage();
-                renderSchedule();
-            }
-        }
-
-        // 深度誌管理
-        function renderGuide() {
-            const container = document.getElementById('guide-container');
-            container.innerHTML = '';
-            guideData.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2 relative group";
-                div.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md">${item.tag}</span>
-                        <button onclick="deleteGuide(${index})" class="text-slate-300 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <h3 class="font-bold text-sm text-slate-700">${item.title}</h3>
-                    <p class="text-xs text-slate-500 leading-relaxed">${item.desc}</p>
-                    ${item.tip ? `<div class="bg-amber-50 text-amber-700 text-[11px] p-2.5 rounded-xl border border-amber-100/50 leading-relaxed">${item.tip}</div>` : ''}
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function addCustomGuide() {
-            const tag = document.getElementById('guide-tag').value.trim() || "自訂分類";
-            const title = document.getElementById('guide-title').value.trim();
-            const desc = document.getElementById('guide-desc').value.trim();
-            const tip = document.getElementById('guide-tip').value.trim();
-
-            if (!title || !desc) return alert('請填寫景點名稱與說明');
-
-            guideData.push({ tag, title, desc, tip });
-            saveGuideToStorage();
-            renderGuide();
-
-            document.getElementById('guide-tag').value = '';
-            document.getElementById('guide-title').value = '';
-            document.getElementById('guide-desc').value = '';
-            document.getElementById('guide-tip').value = '';
-        }
-
-        function deleteGuide(index) {
-            if (confirm('確定要刪除這筆景點筆記嗎？')) {
-                guideData.splice(index, 1);
-                saveGuideToStorage();
-                renderGuide();
-            }
-        }
-
-        // ================= WALLET 核心分帳新邏輯 =================
-        function switchWalletMode(mode) {
-            walletMode = mode;
-            const groupBtn = document.getElementById('wallet-mode-group');
-            const personalBtn = document.getElementById('wallet-mode-personal');
-            const groupFields = document.getElementById('group-fields');
-
-            if (mode === 'group') {
-                groupBtn.className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs";
-                personalBtn.className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
-                groupFields.classList.remove('hidden');
-            } else {
-                groupBtn.className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
-                personalBtn.className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs";
-                groupFields.classList.add('hidden');
-            }
-        }
-
-        function calcExchange() {
-            const expr = document.getElementById('calc-expr').value;
-            if (!expr) return;
-            executeCalc();
-        }
-
-        function executeCalc() {
-            const expr = document.getElementById('calc-expr').value;
-            const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
-            try {
-                // 安全過濾算式，只允許數字與基本加減乘除除運算
-                const cleanExpr = expr.replace(/[^0-9+\-*/().\s]/g, '');
-                const result = Function(`"use strict"; return (${cleanExpr})`)();
-                if (typeof result === 'number' && !isNaN(result)) {
-                    document.getElementById('calc-jpy').innerText = `¥ ${Math.round(result)}`;
-                    document.getElementById('calc-twd').innerText = `NT$ ${Math.round(result * rate)}`;
-                    document.getElementById('expense-amount').value = Math.round(result);
-                }
-            } catch (e) {
-                alert('請輸入正確的數學算式，例如：1200+850');
-            }
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            document.getElementById('img-status').innerText = "讀取中...";
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxW = 150;
-                    const scale = maxW / img.width;
-                    canvas.width = maxW;
-                    canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    currentCompressedImgBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
-                    document.getElementById('img-preview').src = currentCompressedImgBase64;
-                    document.getElementById('img-preview-box').classList.remove('hidden');
-                    document.getElementById('img-status').innerText = "照片已就緒";
-                }
-            }
-            reader.readAsDataURL(file);
-        }
-
-        function addExpense() {
-            const item = document.getElementById('expense-item').value.trim();
-            const jpyAmount = parseFloat(document.getElementById('expense-amount').value);
-            const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
-
-            if (!item || isNaN(jpyAmount)) return alert('請完整填寫消費品項與金額');
-
-            let logData = {
-                id: Date.now(),
-                item,
-                jpy: jpyAmount,
-                twd: Math.round(jpyAmount * rate),
-                img: currentCompressedImgBase64,
-                mode: walletMode
-            };
-
-            if (walletMode === 'group') {
-                const payer = document.getElementById('expense-payer').value;
-                const sharers = [];
-                document.querySelectorAll('input[name="expense-sharer"]:checked').forEach(cb => sharers.push(cb.value));
-                if (sharers.length === 0) return alert('請至少勾選一個群組分攤成員');
+        // 初始化與實時接聽 Firebase
+        window.addEventListener('DOMContentLoaded', () => {
+            // 監聽成員
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                const listContainer = document.getElementById("login-users-list");
+                const payerSelect = document.getElementById("expense-payer");
+                const sharerBox = document.getElementById("expense-sharers-box");
                 
-                logData.payer = payer;
-                logData.sharers = sharers;
-                logData.eachShare = Math.round(jpyAmount / sharers.length);
-            }
+                listContainer.innerHTML = "";
+                payerSelect.innerHTML = "";
+                sharerBox.innerHTML = "";
 
-            expenses.unshift(logData);
-            saveExpensesToStorage();
-            loadExpenses();
+                snapshot.forEach((docSnap) => {
+                    const u = docSnap.data();
+                    u.id = docSnap.id;
 
-            // 重設欄位
-            document.getElementById('expense-item').value = '';
-            document.getElementById('expense-amount').value = '';
-            document.getElementById('calc-expr').value = '';
-            document.getElementById('img-preview-box').classList.add('hidden');
-            document.getElementById('img-status').innerText = "未選取照片";
-            currentCompressedImgBase64 = "";
-        }
-
-        function loadExpenses() {
-            const list = document.getElementById('expense-list');
-            list.innerHTML = '';
-            let totalJpy = 0;
-            let totalTwd = 0;
-
-            expenses.forEach((exp, idx) => {
-                totalJpy += exp.jpy;
-                totalTwd += exp.twd;
-
-                const div = document.createElement('div');
-                div.className = `p-2.5 rounded-xl border flex gap-3 items-center relative group text-xs ${exp.mode === 'personal' ? 'bg-amber-50/40 border-amber-100' : 'bg-slate-50 border-slate-100'}`;
-                
-                let detailHtml = '';
-                if (exp.mode === 'group') {
-                    detailHtml = `<p class="text-[10px] text-slate-400 mt-0.5">由 <b>${exp.payer}</b> 代墊 | 分攤: ${exp.sharers.join(',')} (每人約 ¥${exp.eachShare})</p>`;
-                } else {
-                    detailHtml = `<p class="text-[10px] text-amber-600 mt-0.5">🔒 個人私帳消費明細</p>`;
-                }
-
-                div.innerHTML = `
-                    ${exp.img ? `<img src="${exp.img}" class="w-9 height-9 object-cover rounded-lg border border-slate-200 shadow-inner">` : `<div class="w-9 h-9 bg-slate-200/50 rounded-lg flex items-center justify-center text-slate-400"><i class="fa-solid fa-receipt"></i></div>`}
-                    <div class="flex-1">
-                        <div class="flex justify-between font-bold text-slate-700 pr-4">
-                            <span>${exp.mode === 'personal' ? '👤 ' : '👥 '}${exp.item}</span>
-                            <span class="text-emerald-600">¥${exp.jpy} <span class="text-[10px] text-slate-400 font-normal">(NT$${exp.twd})</span></span>
+                    // 登入清單
+                    listContainer.innerHTML += `
+                        <div onclick="loginAs('${u.name}', '${u.avatar || ''}')" class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col items-center justify-center cursor-pointer hover:bg-emerald-50 hover:border-emerald-200 transition shadow-xs">
+                            <img src="${u.avatar || 'https://via.placeholder.com/150'}" class="w-10 h-10 rounded-full object-cover border border-white shadow-xs mb-1.5">
+                            <span class="text-xs font-bold text-slate-600 truncate w-full">${u.name}</span>
                         </div>
-                        ${detailHtml}
-                    </div>
-                    <button onclick="deleteExpense(${idx})" class="absolute right-2 text-slate-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-circle-xmark"></i></button>
-                `;
-                list.appendChild(div);
+                    `;
+
+                    // 記帳下拉選單與多選框
+                    payerSelect.innerHTML += `<option value="${u.name}">${u.name}</option>`;
+                    sharerBox.innerHTML += `
+                        <label class="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1.5 rounded-lg border border-slate-200/60 font-medium">
+                            <input type="checkbox" name="sharer" value="${u.name}" checked class="rounded text-emerald-400 focus:ring-0"> ${u.name}
+                        </label>
+                    `;
+                });
+
+                // 檢查本地是否已有選定身分
+                const savedUser = localStorage.getItem('trip_user_name');
+                if (savedUser) {
+                    loginAs(savedUser, localStorage.getItem('trip_user_avatar') || '');
+                }
             });
 
-            document.getElementById('expense-total-all').innerText = `¥ ${totalJpy} (NT$ ${totalTwd})`;
+            // 監聽記帳
+            onSnapshot(query(collection(db, "expenses"), orderBy("timestamp", "desc")), (snapshot) => {
+                const listContainer = document.getElementById("expense-list");
+                listContainer.innerHTML = "";
+                let totalJpy = 0;
+                let usersNet = {};
+
+                snapshot.forEach((docSnap) => {
+                    const exp = docSnap.data();
+                    exp.id = docSnap.id;
+                    totalJpy += Number(exp.amount);
+
+                    let detailHtml = exp.mode === 'personal' ? `<span class="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-bold">私帳</span>` : `<span class="text-[10px] bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded font-bold">${exp.payer} 墊</span> ➔ <span class="text-[10px] text-slate-400">${exp.sharers.join(', ')}</span>`;
+                    
+                    listContainer.innerHTML += `
+                        <div class="bg-slate-50/70 border border-slate-100 p-2.5 rounded-xl flex items-center justify-between text-xs">
+                            <div class="space-y-1">
+                                <p class="font-bold text-slate-700">${exp.item}</p>
+                                <div class="flex items-center gap-2">${detailHtml}</div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-slate-600">¥${exp.amount}</span>
+                                <button onclick="deleteExpense('${exp.id}')" class="text-slate-300 hover:text-red-400 transition"><i class="fa-solid fa-circle-xmark"></i></button>
+                            </div>
+                        </div>
+                    `;
+
+                    // 計算結算邏輯
+                    if (exp.mode === 'group') {
+                        if (!usersNet[exp.payer]) usersNet[exp.payer] = 0;
+                        usersNet[exp.payer] += Number(exp.amount);
+
+                        const shareEach = Number(exp.amount) / exp.sharers.length;
+                        exp.sharers.forEach(s => {
+                            if (!usersNet[s]) usersNet[s] = 0;
+                            usersNet[s] -= shareEach;
+                        });
+                    }
+                });
+
+                const rate = parseFloat(document.getElementById("fx-rate").value) || 0.212;
+                document.getElementById("expense-total-all").innerText = `¥ ${totalJpy} (NT$ ${Math.round(totalJpy * rate)})`;
+                renderNetting(usersNet);
+            });
+
+            // 監聽自訂行程與清單備忘
+            onSnapshot(collection(db, "customPlans"), (snapshot) => { renderSchedule(); });
+            onSnapshot(collection(db, "checklist"), (snapshot) => { renderChecklists(); });
+            onSnapshot(collection(db, "memo"), (snapshot) => {
+                const box = document.getElementById("memo-display-box");
+                box.innerHTML = "";
+                snapshot.forEach(d => { box.innerText = d.data().text; });
+            });
+
+            // 綁定按鈕事件
+            document.getElementById("btn-confirm-user").onclick = createNewUser;
+            document.getElementById("btn-logout").onclick = logoutUser;
+            document.getElementById("btn-add-plan").onclick = addCustomPlan;
+            document.getElementById("btn-execute-calc").onclick = executeCalc;
+            document.getElementById("btn-add-expense").onclick = addExpense;
+            document.getElementById("btn-clear-expenses").onclick = clearExpenses;
+            document.getElementById("btn-add-checklist").onclick = addCustomChecklistItem;
+            document.getElementById("btn-save-memo").onclick = saveMemo;
+            document.getElementById("expense-img-input").onchange = handleImageUpload;
+            document.getElementById("wallet-mode-group").onclick = () => switchWalletMode('group');
+            document.getElementById("wallet-mode-personal").onclick = () => switchWalletMode('personal');
+        });
+
+        // 核心業務函數
+        async function createNewUser() {
+            const name = document.getElementById("new-user-name").value.trim();
+            if(!name) return alert("請輸入暱稱！");
+            await addDoc(collection(db, "users"), { name: name, avatar: uploadedImgBase64, timestamp: Date.now() });
+            document.getElementById("new-user-name").value = "";
+            toggleAddUserForm(false);
         }
 
-        function deleteExpense(index) {
-            if (confirm('確定要刪除這筆花費紀錄嗎？')) {
-                expenses.splice(index, 1);
-                saveExpensesToStorage();
-                loadExpenses();
+        function loginAs(name, avatar) {
+            currentUser = name;
+            localStorage.setItem('trip_user_name', name);
+            localStorage.setItem('trip_user_avatar', avatar);
+            document.getElementById("current-user-name").innerText = name;
+            document.getElementById("current-user-avatar").src = avatar || 'https://via.placeholder.com/150';
+            document.getElementById("login-overlay").classList.add("hidden");
+        }
+
+        function logoutUser() {
+            localStorage.clear();
+            currentUser = null;
+            document.getElementById("login-overlay").classList.remove("hidden");
+        }
+
+        async function addCustomPlan() {
+            const time = document.getElementById("plan-time").value.trim();
+            const title = document.getElementById("plan-title").value.trim();
+            const desc = document.getElementById("plan-desc").value.trim();
+            const isImportant = document.getElementById("plan-important").checked;
+            if(!title) return alert("請輸入行程名稱");
+            await addDoc(collection(db, "customPlans"), { day: currentDay, time, title, desc, isImportant });
+            document.getElementById("plan-time").value = "";
+            document.getElementById("plan-title").value = "";
+            document.getElementById("plan-desc").value = "";
+            document.getElementById("plan-important").checked = false;
+        }
+
+        async function addExpense() {
+            const item = document.getElementById("expense-item").value.trim();
+            const amount = document.getElementById("expense-amount").value.trim();
+            if(!item || !amount) return alert("請填寫品項與金額");
+
+            let expData = { item, amount: Number(amount), mode: walletMode, timestamp: Date.now() };
+            if(walletMode === 'group') {
+                const payer = document.getElementById("expense-payer").value;
+                const sharers = Array.from(document.querySelectorAll('input[name="sharer"]:checked')).map(el => el.value);
+                if(sharers.length === 0) return alert("請至少選擇一個分攤成員！");
+                expData.payer = payer;
+                expData.sharers = sharers;
+            }
+            await addDoc(collection(db, "expenses"), expData);
+            document.getElementById("expense-item").value = "";
+            document.getElementById("expense-amount").value = "";
+        }
+
+        async function deleteExpense(id) {
+            if(confirm("確定刪除此筆帳目？")) await deleteDoc(doc(db, "expenses", id));
+        }
+
+        async function clearExpenses() {
+            if(confirm("警報！確定要清空全體記帳明細嗎？")) {
+                const snap = await getDocs(collection(db, "expenses"));
+                snap.forEach(async (d) => await deleteDoc(doc(db, "expenses", d.id)));
             }
         }
 
-        function clearExpenses() {
-            if (confirm('確定要清除所有在 LocalStorage 的歷史記帳明細嗎？此操作不可逆！')) {
-                expenses = [];
-                saveExpensesToStorage();
-                loadExpenses();
+        async function addCustomChecklistItem() {
+            const text = document.getElementById("custom-item-text").value.trim();
+            if(!text) return;
+            await addDoc(collection(db, "checklist"), { tab: currentListTab, text, checked: false });
+            document.getElementById("custom-item-text").value = "";
+        }
+
+        async function saveMemo() {
+            const text = document.getElementById("memo-input").value;
+            const snap = await getDocs(collection(db, "memo"));
+            if(snap.empty) {
+                await addDoc(collection(db, "memo"), { text });
+            } else {
+                await updateDoc(doc(db, "memo", snap.docs[0].id), { text });
             }
         }
 
-        // ================= LISTS 核心防呆與固定清單新邏輯 =================
-        function switchListTab(tab) {
-            activeListTab = tab;
-            document.querySelectorAll('.list-sub-panel').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`list-container-${tab}`).classList.remove('hidden');
+        // 輔助介面切換與渲染函數
+        window.switchTab = function(tabId) {
+            document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+            document.getElementById(`sec-${tabId}`).classList.remove("hidden");
+            document.querySelectorAll(".nav-btn").forEach(el => el.classList.remove("text-emerald-500", "text-slate-400"));
+            document.getElementById(`nav-${tabId}`).classList.add("text-emerald-500");
+        }
 
-            const preBtn = document.getElementById('list-tab-pre');
-            const carryBtn = document.getElementById('list-tab-carry');
-            const checkBtn = document.getElementById('list-tab-check');
+        window.switchDay = function(dayNum) {
+            currentDay = dayNum;
+            document.querySelectorAll(".day-btn").forEach(b => b.className = "day-btn flex-shrink-0 w-16 py-2 rounded-xl text-center bg-white text-slate-500 border border-slate-100 text-sm font-medium");
+            document.getElementById(`btn-d${dayNum}`).className = "day-btn flex-shrink-0 w-16 py-2 rounded-xl text-center bg-gradient-to-br from-emerald-400 to-blue-400 text-white font-bold text-sm shadow-sm";
+            renderSchedule();
+        }
 
-            [preBtn, carryBtn, checkBtn].forEach(b => {
-                b.className = "w-1/3 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400 bg-transparent";
-            });
-
+        window.switchListTab = function(tab) {
+            currentListTab = tab;
+            document.querySelectorAll(".list-sub-panel").forEach(p => p.classList.add("hidden"));
+            document.getElementById(`list-container-${tab}`).classList.remove("hidden");
+            document.querySelectorAll("[id^='list-tab-']").forEach(b => b.className = "w-1/3 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400");
             document.getElementById(`list-tab-${tab}`).className = "w-1/3 py-1.5 rounded-lg text-center text-xs font-bold bg-emerald-400 text-white shadow-xs";
         }
 
-        function renderChecklists() {
-            ['pre', 'carry', 'check'].forEach(type => {
-                const box = document.getElementById(`list-container-${type}`);
-                box.innerHTML = '';
-                const items = checklistData[type] || [];
-
-                items.forEach((item, index) => {
-                    const row = document.createElement('div');
-                    row.className = "flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 text-xs";
-                    
-                    // 核心固定項目與一般項目的按鈕排他處理
-                    let actionBtnHtml = '';
-                    if (item.isDefault) {
-                        actionBtnHtml = `<span class="text-[10px] text-slate-300 bg-slate-100 px-1.5 py-0.5 rounded"><i class="fa-solid fa-lock mr-0.5"></i>固定</span>`;
-                    } else {
-                        actionBtnHtml = `<button onclick="deleteChecklistItem('${type}', ${index})" class="text-slate-300 hover:text-red-400 transition"><i class="fa-solid fa-trash-can"></i></button>`;
-                    }
-
-                    row.innerHTML = `
-                        <label class="flex items-center space-x-2 text-slate-600 cursor-pointer flex-1 select-none">
-                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistStatus('${type}', ${index})" class="rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 w-4 h-4">
-                            <span class="${item.checked ? 'line-through text-slate-300' : ''}">${item.text}</span>
-                        </label>
-                        <div class="flex items-center">${actionBtnHtml}</div>
-                    `;
-                    box.appendChild(row);
-                });
-            });
-        }
-
-        function toggleChecklistStatus(type, index) {
-            checklistData[type][index].checked = !checklistData[type][index].checked;
-            saveChecklistToStorage();
-            renderChecklists();
-        }
-
-        function addCustomChecklistItem() {
-            const text = document.getElementById('custom-item-text').value.trim();
-            if (!text) return;
-
-            checklistData[activeListTab].push({ text, checked: false, isDefault: false });
-            saveChecklistToStorage();
-            renderChecklists();
-            document.getElementById('custom-item-text').value = '';
-        }
-
-        // 刪除自訂項目需要確認
-        function deleteChecklistItem(type, index) {
-            if (confirm('確定要移除此項自訂行李/準備清單嗎？')) {
-                checklistData[type].splice(index, 1);
-                saveChecklistToStorage();
-                renderChecklists();
-            }
-        }
-
-        // 備忘錄
-        function saveMemo() {
-            const text = document.getElementById('memo-input').value;
-            localStorage.setItem('trip_memo_v2', text);
-            loadMemo();
-        }
-
-        function loadMemo() {
-            const saved = localStorage.getItem('trip_memo_v2') || "";
-            document.getElementById('memo-input').value = saved;
-            
-            const display = document.getElementById('memo-display-box');
-            if(saved.trim()) {
-                display.innerText = saved;
-                // 簡易超連結正則擷取
-                const urlRegex = /(https?:\/\/[^\s]+)/g;
-                const links = saved.match(urlRegex);
-                const linkBox = document.getElementById('memo-links-container');
-                linkBox.innerHTML = '';
-                if(links) {
-                    links.forEach(url => {
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.target = "_blank";
-                        a.className = "text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md max-w-xs truncate block";
-                        a.innerHTML = `<i class="fa-solid fa-link mr-1"></i> ${url}`;
-                        linkBox.appendChild(a);
-                    });
-                }
+        function switchWalletMode(mode) {
+            walletMode = mode;
+            if(mode === 'group') {
+                document.getElementById("group-fields").classList.remove("hidden");
+                document.getElementById("wallet-mode-group").className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs";
+                document.getElementById("wallet-mode-personal").className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
             } else {
-                display.innerText = "目前無備忘內容。";
-                document.getElementById('memo-links-container').innerHTML = '';
+                document.getElementById("group-fields").classList.add("hidden");
+                document.getElementById("wallet-mode-group").className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
+                document.getElementById("wallet-mode-personal").className = "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-white text-emerald-600 shadow-xs";
             }
         }
 
-        // 初始化拖曳排序 (Sortable.js)
-        function initSortable() {
-            const el = document.getElementById('day-schedule-container');
-            Sortable.create(el, {
-                ghostClass: 'sortable-ghost',
-                animation: 150,
-                onEnd: function (evt) {
-                    const items = tripData[activeDay];
-                    // 在陣列中將拖曳項目的索引重新排序
-                    const movedItem = items.splice(evt.oldIndex, 1)[0];
-                    items.splice(evt.newIndex, 0, movedItem);
-                    saveTripToStorage();
-                },
+        window.toggleAddUserForm = function(show) {
+            document.getElementById("add-user-form").classList.toggle("hidden", !show);
+        }
+
+        window.previewNewUserAvatar = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const r = new FileReader();
+            r.onload = function(evt) {
+                uploadedImgBase64 = evt.target.result;
+                document.getElementById("new-avatar-preview").src = uploadedImgBase64;
+                document.getElementById("new-avatar-preview").classList.remove("hidden");
+                document.getElementById("new-avatar-icon").classList.add("hidden");
+            }
+            r.readAsDataURL(file);
+        }
+
+        function handleImageUpload(e) {
+            if(e.target.files[0]) document.getElementById("img-status").innerText = "已選取發票相片";
+        }
+
+        function executeCalc() {
+            try {
+                const expr = document.getElementById("calc-expr").value;
+                const res = Function(`"use strict"; return (${expr})`)();
+                document.getElementById("calc-jpy").innerText = `¥ ${res}`;
+                const rate = parseFloat(document.getElementById("fx-rate").value) || 0.212;
+                document.getElementById("calc-twd").innerText = `NT$ ${Math.round(res * rate)}`;
+                document.getElementById("expense-amount").value = res;
+            } catch { alert("算式錯誤"); }
+        }
+
+        async function renderSchedule() {
+            const container = document.getElementById("day-schedule-container");
+            container.innerHTML = "";
+            let items = [...(defaultTripData[currentDay] || [])];
+            
+            const snap = await getDocs(collection(db, "customPlans"));
+            snap.forEach(d => {
+                if(d.data().day === currentDay) items.push(d.data());
             });
+
+            items.sort((a,b) => a.time.localeCompare(b.time));
+            items.forEach(it => {
+                container.innerHTML += `
+                    <li class="relative pl-2">
+                        <div class="absolute -left-[27px] top-1 w-3.5 h-3.5 bg-white border-2 border-emerald-400 rounded-full flex items-center justify-center z-10 shadow-xs"></div>
+                        <div class="${it.isImportant ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200' : 'bg-white border border-slate-100'} p-3 rounded-2xl shadow-xs space-y-1">
+                            <span class="text-[10px] font-bold ${it.isImportant?'text-amber-600 bg-amber-100':'text-emerald-600 bg-emerald-50'} px-2 py-0.5 rounded-full">${it.time}</span>
+                            <h4 class="font-bold text-xs text-slate-700 pt-0.5">${it.title}</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">${it.desc}</p>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
+        async function renderChecklists() {
+            const preBox = document.getElementById("list-container-pre");
+            const carryBox = document.getElementById("list-container-carry");
+            const checkBox = document.getElementById("list-container-check");
+
+            preBox.innerHTML = ""; carryBox.innerHTML = ""; checkBox.innerHTML = "";
+
+            // 內建行前準備
+            preTripList.forEach((item, idx) => {
+                preBox.innerHTML += `
+                    <label class="flex items-start gap-2 p-1.5 hover:bg-slate-50 rounded-lg text-xs font-medium cursor-pointer">
+                        <input type="checkbox" class="mt-0.5 rounded text-emerald-400 focus:ring-0">
+                        <span>${item.text} ${item.isUrl ? `<a href="${item.url}" target="_blank" class="text-blue-500 underline ml-1"><i class="fa-solid fa-link"></i></a>`:''}</span>
+                    </label>
+                `;
+            });
+
+            // 實時讀取雲端自訂項目
+            const snap = await getDocs(collection(db, "checklist"));
+            snap.forEach(d => {
+                const item = d.data();
+                let target = item.tab === 'pre' ? preBox : (item.tab === 'carry' ? carryBox : checkBox);
+                target.innerHTML += `
+                    <div class="flex items-center justify-between p-1.5 hover:bg-slate-50 rounded-lg text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium flex-1">
+                            <input type="checkbox" ${item.checked?'checked':''} class="rounded text-emerald-400 focus:ring-0">
+                            <span class="${item.checked?'line-through text-slate-300':''}">${item.text}</span>
+                        </label>
+                    </div>
+                `;
+            });
+        }
+
+        function renderNetting(net) {
+            const dashboard = document.getElementById("netting-dashboard");
+            const suggestions = document.getElementById("netting-suggestions");
+            dashboard.innerHTML = ""; suggestions.innerHTML = "";
+
+            let tuples = [];
+            for(let u in net) {
+                let val = Math.round(net[u]);
+                tuples.push({ name: u, val: val });
+                if(val !== 0) {
+                    dashboard.innerHTML += `<div class="flex justify-between bg-white/5 p-1.5 rounded"><span>${u}</span><span class="${val>0?'text-emerald-400':'text-red-400'} font-bold">${val > 0 ? '應拿回 +' : '應支付 '}${val} JPY</span></div>`;
+                }
+            }
+
+            // 金流簡化貪心演算法
+            let creditors = tuples.filter(x => x.val > 0).sort((a,b) => b.val - a.val);
+            let debtors = tuples.filter(x => x.val < 0).sort((a,b) => a.val - b.val);
+
+            let i = 0, j = 0;
+            while(i < debtors.length && j < creditors.length) {
+                let owe = -debtors[i].val;
+                let get = creditors[j].val;
+                let am = Math.min(owe, get);
+
+                suggestions.innerHTML += `<p class="bg-white/5 p-2 rounded border border-white/5 flex items-center gap-1"><i class="fa-solid fa-paper-plane text-[10px] text-emerald-400"></i> <b>${debtors[i].name}</b> ➔ 轉帳給 <b>${creditors[j].name}</b> <span class="text-amber-300 font-bold ml-auto">¥ ${Math.round(am)}</span></p>`;
+
+                debtors[i].val += am;
+                creditors[j].val -= am;
+
+                if(Math.round(debtors[i].val) === 0) i++;
+                if(Math.round(creditors[j].val) === 0) j++;
+            }
+            if(suggestions.innerHTML === "") suggestions.innerHTML = `<p class="text-slate-400 text-center text-[11px] py-2">目前帳目平分，無欠債！</p>`;
         }
     </script>
 </body>
