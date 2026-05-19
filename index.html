@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=300;400;500;700&family=Quicksand:wght=500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
         body {
@@ -69,7 +68,7 @@
 
     <div id="edit-plan-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[110] flex items-center justify-center p-4 hidden">
         <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3">
-            <h3 class="font-bold text-sm text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square text-emerald-500"></i> 編輯行程區塊</h3>
+            <h3 class="font-bold text-sm text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-pen-to-square text-emerald-500"></i> 編輯區塊行程 (群組共享)</h3>
             <input type="hidden" id="edit-plan-id">
             <div class="grid grid-cols-3 gap-2">
                 <input type="text" id="edit-plan-time" placeholder="時間" class="bg-slate-50 border border-slate-200 px-2.5 py-2 rounded-xl text-xs focus:outline-none col-span-1 font-bold">
@@ -112,7 +111,7 @@
         </div>
         <div class="relative">
             <div onclick="toggleUserDropdown()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-100 pl-2 pr-3 py-1 rounded-full shadow-xs cursor-pointer hover:opacity-90 transition">
-                <img id="current-user-avatar" src="" class="w-6 h-6 rounded-full border border-white bg-slate-200 object-cover">
+                <img id="current-user-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23ccc'/></svg>" class="w-6 h-6 rounded-full border border-white bg-slate-200 object-cover">
                 <span id="current-user-name" class="text-xs font-bold text-slate-600">載入中...</span>
                 <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5"></i>
             </div>
@@ -263,6 +262,7 @@
                 </div>
 
                 <div id="wallet-action-expense-form" class="space-y-3">
+                    <h4 id="expense-form-title" class="text-xs font-bold text-slate-600">👥 紀錄一筆「團體公帳」消費</h4>
                     <div class="grid grid-cols-3 gap-2">
                         <input type="text" id="expense-item" placeholder="品項（如：藥妝）" class="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none col-span-2">
                         <select id="expense-currency" class="bg-slate-50 border border-slate-100 px-1 py-2 rounded-xl text-xs focus:outline-none text-center font-bold text-slate-600">
@@ -282,25 +282,25 @@
                             <div id="expense-split-checkboxes" class="flex flex-wrap gap-1.5 pt-1"></div>
                         </div>
                     </div>
-                    <button onclick="addExpense()" id="btn-submit-expense" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">儲存公帳消費 🌐</button>
+                    <button onclick="addExpense()" id="btn-submit-expense" class="w-full bg-gradient-to-r from-emerald-400 to-blue-400 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">儲存消費 🌐</button>
                 </div>
 
                 <div id="wallet-action-settle-form" class="space-y-3 hidden">
                     <div class="p-3 bg-amber-50 border border-amber-100 text-slate-600 rounded-xl text-[11px] leading-relaxed">
-                        💡 <b>債務清償功能：</b>當某成員已私下還錢或給付特定金額給另一人時，可在下方建立「已還清」或「已給付」的設定，系統將會直接平衡沖銷清算帳務。
+                        💡 <b>債務清償功能：</b>當某成員已私下還錢或給付特定金額給另一人時（例如：吳先墊付給雯），可在下方建立還款設定，系統將會直接平衡沖銷清算帳務。
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-[10px] text-slate-400 font-bold block mb-1">還款人 (債務人)</label>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">還款人 (或幫忙代墊者)</label>
                             <select id="settle-from" class="w-full bg-slate-50 border border-slate-200 px-2 py-2 rounded-xl text-xs font-semibold text-slate-600 focus:outline-none"></select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-slate-400 font-bold block mb-1">收款人 (債權人)</label>
+                            <label class="text-[10px] text-slate-400 font-bold block mb-1">收款人 (或被代墊受益者)</label>
                             <select id="settle-to" class="w-full bg-slate-50 border border-slate-200 px-2 py-2 rounded-xl text-xs font-semibold text-slate-600 focus:outline-none"></select>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
-                        <input type="number" id="settle-amount" placeholder="還款金額" class="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none col-span-2 font-bold">
+                        <input type="number" id="settle-amount" placeholder="金額" class="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none col-span-2 font-bold">
                         <select id="settle-currency" class="bg-slate-50 border border-slate-100 px-1 py-2 rounded-xl text-xs focus:outline-none text-center font-bold text-slate-600">
                             <option value="JPY">日幣 (¥)</option>
                             <option value="TWD">台幣 (NT$)</option>
@@ -431,7 +431,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, query, orderBy, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -448,16 +448,15 @@
         const auth = getAuth(app);
 
         let currentUid = null;
-        let currentUserProfile = null;
         let currentDay = 1;
         let currentListTab = 'carry';
         let walletMode = 'group';
-        let walletAction = 'expense'; // 'expense' 或 'settle'
+        let walletAction = 'expense';
         let base64Avatar = "";
         let allProfilesCached = [];
 
-        // 核心原裝內建預設行程 (加上預計停留與交通欄位)
-        const fixedItinerary = {
+        // 精典原始行程資料庫 (初次上傳 Firebase 共享使用)
+        const seedItinerary = {
             1: [
                 { time: "06:30", title: "第一航廈集合", desc: "準備搭乘星宇航空，確認手提行李無違禁品。", duration: 95, trans: "✈️ 飛機" },
                 { time: "11:45", title: "抵達 Kobe Airport Terminal 2", desc: "抵達神戶機場，辦理入境並提取行李。", duration: 90, trans: "🚇 地鐵/火車" },
@@ -505,7 +504,7 @@
                 { time: "12:00", title: "午餐：Mouriya (モーリヤ)", desc: "朝聖頂級老字號神戶牛排鐵板燒，外酥內嫩、入口即化。", duration: 120, trans: "🚇 地鐵/火車" },
                 { time: "14:00", title: "景點：姬路城 (白鷺城)", desc: "日本第一名城、世界文化遺產！雪白牆面如白鷺展翅般優美。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C67", duration: 180, trans: "🚇 地鐵/火車" },
                 { time: "17:00", title: "景點：好古園", desc: "姬路城旁的日式池泉迴遊式庭園，四季風情皆具禪意。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C68", duration: 90, trans: "🚇 地鐵/火車" },
-                { time: "18:30", title: "晚餐：神戶港周邊美食或燒肉", desc: "返回三宮或港區自由享用美食。", duration: 150, trans: "👣 步行" },
+                { time: "18:30", title: "晚餐：神戶港周邊美食或燒肉", desc: "返回三宮 or 港區自由享用美食。", duration: 150, trans: "👣 步行" },
                 { time: "21:00", title: "返回飯店", desc: "返回 Villa Fontaine 神戶三宮。" }
             ],
             6: [
@@ -515,21 +514,50 @@
             ]
         };
 
-        // 預設核心景點誌
         const fixedGuides = [
-            { id:"g1", tag:"Osaka // 歷史", title:"大阪城天守閣", desc:"由豐臣秀吉於1583年開始建造，歷經多次戰火摧毀與重建。現存天守閣為1931年民間募資重修。內部已改成現代化博物館，展示豐臣秀吉生平與大阪夏之陣的珍貴歷史文物。登上8樓展望台能將整座大阪城公園與摩天大樓盡收眼底。", map:"https://maps.app.goo.gl/9ZpZ", tip:"💡 小提示：外圍護城河非常巨型，從地鐵站走到天守閣核心約需15-20分鐘步行。" },
-            { id:"g2", tag:"Kyoto // 文化", title:"伏見稻荷大社", desc:"全日本4萬多座稻荷神社的總本山，主要供奉保佑商業繁榮、五穀豐登的稻荷大神。最知名的是沿著稻荷山綿延數公里的『千本鳥居』，全由信徒和企業捐款建造。狐狸被視為稻荷神的使者，因此神社內處處可見各式神態的狐狸石雕與狐狸形狀的繪馬。", map:"https://maps.app.goo.gl/KyoX", tip:"💡 小提示：若想拍到空無一人的鳥居通道，強烈建議在上午8點前抵達。" },
-            { id:"g3", tag:"Nara // 生態", title:"奈良公園與東大寺", desc:"東大寺由聖武天皇於西元728年大舉興建，其大佛殿為世界最大的木造建築。殿內供奉的高15公尺盧舍那大佛令人震撼。公園內有超過1000隻天然紀念物野生梅花鹿，牠們在古廟與草地上自由漫步，看到鹿仙貝時會主動靠過來甚至鞠躬敬禮。", map:"https://maps.app.goo.gl/NarA", tip:"💡 小提示：買了鹿仙貝要立刻藏好，否則容易被鹿群團團包圍或輕咬衣服！" },
-            { id:"g4", tag:"Himeji // 遺產", title:"姬路城 (白鷺城)", desc:"日本保存最完整的城堡，同時也是日本首批入選的世界文化遺產。因其雪白潔淨的牆壁與優雅的飛簷，形似一隻展翅高飛的白鷺，故又被美稱為『白鷺城』。其複雜的防禦迷宮式通道與保存完好的大天守內部木造結構，是軍事與建築藝術的極致結晶。", map:"https://maps.app.goo.gl/Hime", tip:"💡 小提示：進入天守閣內部需要脫鞋並套上塑膠袋，冬春季地板冰涼，建議穿厚襪。" }
+            { id:"g1", tag:"Osaka // 歷史", title:"大阪城天守閣", desc:"由豐臣秀吉於1583年開始建造，內部已改成博物館，展示歷史文物。登上8樓展望台能將整座大阪城公園與摩天大樓盡收眼底。", map:"https://maps.app.goo.gl/9ZpZ", tip:"💡 小提示：外圍護城河非常巨型，從地鐵站走到天守閣核心約需15-20分鐘步行。" },
+            { id:"g2", tag:"Kyoto // 文化", title:"伏見稻荷大社", desc:"全日本4萬多座稻荷神社的總本山，主要供奉保佑商業繁榮的大神。最知名的是沿著稻荷山綿延數公里的『千本鳥居』。", map:"https://maps.app.goo.gl/KyoX", tip:"💡 小提示：若想拍到空無一人的鳥居通道，強烈建議在上午8點前抵達。" }
         ];
 
-        // 初始化行前打包清單
         const defaultLists = {
             carry: ["護照正本", "日幣現金", "信用卡/雙幣卡", "手機與E-sim條碼", "行動電源", "Visit Japan Web 截圖", "牙套/個人藥品"],
             check: ["換洗衣物", "充電線/豆腐頭", "盥洗保養品", "雨傘/雨衣", "休閒走路鞋", "空行李袋(裝戰利品)"]
         };
 
-        // 綁定全域函式供 HTML onclick 呼叫
+        // 檢查並初始化雲端行程表共享機制
+        async function checkAndSeedItinerary() {
+            const snap = await getDocs(collection(db, "itinerary"));
+            if (snap.empty) {
+                for (const day in seedItinerary) {
+                    for (const item of seedItinerary[day]) {
+                        await addDoc(collection(db, "itinerary"), {
+                            day: parseInt(day),
+                            time: item.time,
+                            title: item.title,
+                            desc: item.desc || "",
+                            map: item.map || "",
+                            duration: item.duration || 60,
+                            trans: item.trans || "🚇 地鐵/火車",
+                            important: false
+                        });
+                    }
+                }
+            }
+        }
+
+        // 頁籤切換與顏色變換修復
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('text-emerald-500');
+                el.classList.add('text-slate-400');
+            });
+            document.getElementById(`nav-${tabId}`).classList.add('text-emerald-500');
+            document.getElementById(`nav-${tabId}`).classList.remove('text-slate-400');
+        };
+
         window.toggleAuthMode = (mode) => {
             document.getElementById('form-signin').classList.toggle('hidden', mode !== 'signin');
             document.getElementById('form-signup').classList.toggle('hidden', mode !== 'signup');
@@ -582,35 +610,21 @@
 
         window.handleSignOut = () => { signOut(auth).then(() => { document.getElementById('user-dropdown').classList.add('hidden'); }); };
 
-        // 刪除自身帳戶功能 (銷戶)
         window.handleDeleteAccount = async () => {
             if(!currentUid) return;
-            if(!confirm("⚠️ 警告：您確定要刪除您目前的這名成員身分嗎？\n此動作將會登出並將您徹底從分帳、使用者名單中完全移除，且無法復原！")) return;
+            if(!confirm("⚠️ 確定要刪除您目前的這名成員身分嗎？此動作無法復原！")) return;
             try {
                 const user = auth.currentUser;
                 if(user) {
-                    // 1. 先刪除 Firestore 中的使用者 Profile 檔案
                     await deleteDoc(doc(db, "users", currentUid));
-                    // 2. 刪除 Firebase Auth 帳密認證
                     await deleteUser(user);
                     alert("🗑️ 帳號已成功註冊銷戶！");
                     window.location.reload();
                 }
-            } catch(err) {
-                alert("刪除帳號失敗 (可能需要您重新登入以驗證重要權限): " + err.message);
-            }
+            } catch(err) { alert("刪除帳號失敗 (可能需要您重新登入): " + err.message); }
         };
 
-        window.toggleUserDropdown = () => {
-            document.getElementById('user-dropdown').classList.toggle('hidden');
-        };
-
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`sec-${tab}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('text-emerald-500'); el.classList.add('text-slate-400'); });
-            document.getElementById(`nav-${tab}`).classList.add('text-emerald-500');
-        };
+        window.toggleUserDropdown = () => { document.getElementById('user-dropdown').classList.toggle('hidden'); };
 
         window.switchDay = (d) => {
             currentDay = d;
@@ -621,7 +635,7 @@
             loadScheduleData();
         };
 
-        // 行程管理大重構：排序與時間間隔計算
+        // 行程雲端同步渲染
         let customPlansList = [];
         onSnapshot(query(collection(db, "itinerary"), orderBy("time", "asc")), (snap) => {
             customPlansList = [];
@@ -635,27 +649,11 @@
             return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
         }
 
-        function formatMinutesToTimeString(totalMin) {
-            const h = Math.floor(totalMin / 60) % 24;
-            const m = totalMin % 60;
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        }
-
         function loadScheduleData() {
             const container = document.getElementById('day-schedule-container');
             container.innerHTML = "";
 
-            // 組合預設與雲端行程
-            const dayFixed = fixedItinerary[currentDay] || [];
-            const dayCustom = customPlansList.filter(p => parseInt(p.day) === currentDay);
-            
-            // 統一格式
-            let combined = [
-                ...dayFixed.map((x, i) => ({ ...x, id: `fixed-${currentDay}-${i}`, isFixed: true })),
-                ...dayCustom.map(x => ({ ...x, isFixed: false }))
-            ];
-
-            // 自動根據時間字串先後進行嚴格排序
+            let combined = customPlansList.filter(p => parseInt(p.day) === currentDay);
             combined.sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
 
             if(combined.length === 0) {
@@ -666,17 +664,14 @@
             combined.forEach((item, index) => {
                 const isImportant = item.important;
                 const nextItem = combined[index + 1];
-                
-                // 計算間隔與移動時間
-                let intervalHtml = "";
                 let durationVal = item.duration ? parseInt(item.duration) : 60;
                 let transVal = item.trans || "🚇 地鐵/火車";
+                let intervalHtml = "";
 
                 if(nextItem) {
                     const curStart = parseTimeToMinutes(item.time);
                     const nextStart = parseTimeToMinutes(nextItem.time);
                     const gap = nextStart - (curStart + durationVal);
-                    
                     intervalHtml = `
                         <div class="my-2 ml-4 flex items-center gap-2 text-[11px] text-slate-400 font-medium">
                             <span class="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md font-bold">${transVal}</span>
@@ -696,7 +691,6 @@
                 card.className = "relative mb-1 group";
                 card.innerHTML = `
                     <div class="absolute -left-[21px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white ${isImportant ? 'bg-rose-400 ring-4 ring-rose-100' : 'bg-emerald-400 ring-4 ring-emerald-100'} z-10"></div>
-                    
                     <div class="p-3.5 rounded-2xl transition border ${isImportant ? 'bg-rose-50/80 border-rose-100 shadow-xs' : 'bg-white border-slate-100 shadow-xs'}">
                         <div class="flex justify-between items-start gap-1">
                             <div class="flex items-center gap-2">
@@ -718,7 +712,6 @@
             });
         }
 
-        // 彈出式修改行程區塊視窗與儲存邏輯
         window.openEditPlanModal = (id, time, title, desc, map, important, duration, trans) => {
             document.getElementById('edit-plan-id').value = id;
             document.getElementById('edit-plan-time').value = time;
@@ -731,9 +724,7 @@
             document.getElementById('edit-plan-modal').classList.remove('hidden');
         };
 
-        window.closeEditPlanModal = () => {
-            document.getElementById('edit-plan-modal').classList.add('hidden');
-        };
+        window.closeEditPlanModal = () => { document.getElementById('edit-plan-modal').classList.add('hidden'); };
 
         window.savePlanEdit = async () => {
             const id = document.getElementById('edit-plan-id').value;
@@ -746,35 +737,15 @@
             const trans = document.getElementById('edit-plan-trans').value;
 
             if(!time || !title) return alert("時間與名稱不能為空！");
-
-            if(id.startsWith('fixed-')) {
-                // 如果是編輯既有的內建行程，直接暫時存入本地覆蓋快取區
-                const idx = parseInt(id.split('-')[2]);
-                fixedItinerary[currentDay][idx] = { time, title, desc, map, important, duration, trans };
-                alert("✏️ 內建預設項目已在本機暫時更新成功！");
-                closeEditPlanModal();
-                loadScheduleData();
-            } else {
-                // 自訂行程則直接同步更新至 Firestore 雲端資料庫中
-                await setDoc(doc(db, "itinerary", id), { day: currentDay, time, title, desc, map, important, duration, trans }, { merge: true });
-                closeEditPlanModal();
-            }
+            await setDoc(doc(db, "itinerary", id), { day: currentDay, time, title, desc, map, important, duration, trans }, { merge: true });
+            closeEditPlanModal();
         };
 
         window.deletePlanInModal = async () => {
             const id = document.getElementById('edit-plan-id').value;
             if(!confirm("確定要刪除或取消此項行程區塊嗎？")) return;
-            
-            if(id.startsWith('fixed-')) {
-                const idx = parseInt(id.split('-')[2]);
-                fixedItinerary[currentDay].splice(idx, 1);
-                alert("🗑️ 預設行程已成功移除！");
-                closeEditPlanModal();
-                loadScheduleData();
-            } else {
-                await deleteDoc(doc(db, "itinerary", id));
-                closeEditPlanModal();
-            }
+            await deleteDoc(doc(db, "itinerary", id));
+            closeEditPlanModal();
         };
 
         window.addCustomPlan = async () => {
@@ -786,17 +757,15 @@
             const duration = parseInt(document.getElementById('plan-duration').value) || 60;
             const trans = document.getElementById('plan-trans').value;
 
-            if(!time || !title) return alert("請至少填入時間與景點活動名稱！");
+            if(!time || !title) return alert("請填入時間與名稱！");
             await addDoc(collection(db, "itinerary"), { day: currentDay, time, title, desc, map, important, duration, trans });
             
-            document.getElementById('plan-time').value = "";
-            document.getElementById('plan-title').value = "";
-            document.getElementById('plan-desc').value = "";
-            document.getElementById('plan-map').value = "";
+            document.getElementById('plan-time').value = ""; document.getElementById('plan-title').value = "";
+            document.getElementById('plan-desc').value = ""; document.getElementById('plan-map').value = "";
             document.getElementById('plan-important').checked = false;
         };
 
-        // 景點與筆記誌 (GUIDE)
+        // 景點深度誌 (GUIDE)
         let customGuidesList = [];
         onSnapshot(collection(db, "guides"), (snap) => {
             customGuidesList = [];
@@ -814,7 +783,7 @@
                 item.innerHTML = `
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-bold tracking-wider bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md">${g.tag}</span>
-                        ${g.map ? `<a href="${g.map}" target="_blank" class="text-blue-500 text-xs font-bold underline flex items-center gap-1"><i class="fa-solid fa-map-location-dot"></i> 地圖導航</a>` : ''}
+                        ${g.map ? `<a href="${g.map}" target="_blank" class="text-blue-500 text-xs font-bold underline flex items-center gap-1"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : ''}
                     </div>
                     <h3 class="font-bold text-sm text-slate-700">${g.title}</h3>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">${g.desc}</p>
@@ -831,7 +800,7 @@
             const desc = document.getElementById('guide-desc').value.trim();
             const map = document.getElementById('guide-map').value.trim();
             const tip = document.getElementById('guide-tip').value.trim();
-            if(!title || !desc) return alert("請輸入景點名稱與內文心得以利儲存！");
+            if(!title || !desc) return alert("請輸入名稱與心得分享！");
             await addDoc(collection(db, "guides"), { tag, title, desc, map, tip });
             document.getElementById('guide-tag').value = ""; document.getElementById('guide-title').value = "";
             document.getElementById('guide-desc').value = ""; document.getElementById('guide-map').value = "";
@@ -840,23 +809,22 @@
 
         window.deleteGuide = async (id) => { if(confirm("確定刪除此隨行筆記？")) await deleteDoc(doc(db, "guides", id)); };
 
-        // 錢包核心帳務動作切換
+        // 錢包核心帳務動作與計算機
         window.switchWalletAction = (action) => {
             walletAction = action;
             document.getElementById('wallet-action-expense-form').classList.toggle('hidden', action !== 'expense');
             document.getElementById('wallet-action-settle-form').classList.toggle('hidden', action !== 'settle');
-            document.getElementById('btn-action-expense').className = action === 'expense' ? "text-slate-700 border-b-2 border-emerald-500 pb-1" : "text-slate-400 pb-1";
-            document.getElementById('btn-action-settle').className = action === 'settle' ? "text-slate-700 border-b-2 border-emerald-500 pb-1" : "text-slate-400 pb-1";
+            document.getElementById('btn-action-expense').className = action === 'expense' ? "text-slate-700 border-b-2 border-emerald-500 pb-1 font-bold" : "text-slate-400 pb-1";
+            document.getElementById('btn-action-settle').className = action === 'settle' ? "text-slate-700 border-b-2 border-emerald-500 pb-1 font-bold" : "text-slate-400 pb-1";
         };
 
-        // 雙幣換算機功能
         window.executeCalc = () => {
             const expr = document.getElementById('calc-expr').value.replace(/\s+/g, '');
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
             if(!expr) return;
             try {
                 if(!/^[0-9+\-*/().]+$/.test(expr)) throw new Error();
-                const jpy = Function(`"use strict"; return (${expr})`)();
+                const jpy = Function("\"use strict\"; return (" + expr + ")")();
                 document.getElementById('calc-jpy').innerText = `¥ ${Math.round(jpy)}`;
                 document.getElementById('calc-twd').innerText = `NT$ ${Math.round(jpy * rate)}`;
                 document.getElementById('expense-amount').value = Math.round(jpy);
@@ -876,7 +844,6 @@
             loadExpenses();
         };
 
-        // 監聽公帳歷史明細
         let allExpenses = [];
         onSnapshot(query(collection(db, "expenses"), orderBy("createdAt", "desc")), (snap) => {
             allExpenses = [];
@@ -884,7 +851,6 @@
             loadExpenses();
         });
 
-        // 多幣別轉換與債務還款功能
         window.addExpense = async () => {
             const item = document.getElementById('expense-item').value.trim();
             const inputAmount = parseFloat(document.getElementById('expense-amount').value);
@@ -893,13 +859,7 @@
 
             if(!item || isNaN(inputAmount)) return alert("請輸入完整品項名稱與金額！");
 
-            // 自動根據自訂匯率，將台幣換算、統一日幣公帳數據
-            let amountJpy = 0;
-            if(currency === 'TWD') {
-                amountJpy = Math.round(inputAmount / rate);
-            } else {
-                amountJpy = Math.round(inputAmount);
-            }
+            let amountJpy = (currency === 'TWD') ? Math.round(inputAmount / rate) : Math.round(inputAmount);
 
             if(walletMode === 'personal') {
                 await addDoc(collection(db, "expenses"), { mode: "personal", uid: currentUid, item, amount: amountJpy, currency: currency, originalAmount: inputAmount, createdAt: Date.now() });
@@ -917,7 +877,6 @@
             document.getElementById('expense-item').value = ""; document.getElementById('expense-amount').value = "";
         };
 
-        // 新增債務清償款項設定
         window.addSettlementRecord = async () => {
             const fromUser = document.getElementById('settle-from').value;
             const toUser = document.getElementById('settle-to').value;
@@ -925,8 +884,8 @@
             const currency = document.getElementById('settle-currency').value;
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
 
-            if(fromUser === toUser) return alert("還款人與收款人不能是同一人！");
-            if(isNaN(inputAmount) || inputAmount <= 0) return alert("請輸入正確還款金額！");
+            if(fromUser === toUser) return alert("還款與代墊對象不能是同一個人！");
+            if(isNaN(inputAmount) || inputAmount <= 0) return alert("請輸入正確還款代墊金額！");
 
             let amountJpy = (currency === 'TWD') ? Math.round(inputAmount / rate) : Math.round(inputAmount);
 
@@ -951,22 +910,15 @@
             filtered.forEach(e => {
                 const row = document.createElement('div');
                 row.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-xl text-xs border border-slate-100/60";
-                
-                let displayAmountText = "";
-                if(e.currency === 'TWD') {
-                    displayAmountText = `NT$ ${e.originalAmount} (➔ ¥${e.amount})`;
-                } else {
-                    displayAmountText = `¥ ${e.amount} (≈ NT$ ${Math.round(e.amount * rate)})`;
-                }
+                let displayAmountText = (e.currency === 'TWD') ? `NT$ ${e.originalAmount} (➔ ¥${e.amount})` : `¥ ${e.amount} (≈ NT$ ${Math.round(e.amount * rate)})`;
 
                 if(e.type === 'settlement') {
-                    // 還款清償版面
                     const fromName = allProfilesCached.find(p=>p.uid===e.payer)?.name || "成員";
                     const toName = allProfilesCached.find(p=>p.uid===e.targetUser)?.name || "成員";
                     row.innerHTML = `
                         <div class="space-y-0.5">
                             <div class="font-bold text-amber-600 flex items-center gap-1"><i class="fa-solid fa-handshake"></i> ${e.item}</div>
-                            <div class="text-[10px] text-slate-400 font-medium">${fromName} ➔ 已還錢給 ${toName}</div>
+                            <div class="text-[10px] text-slate-400 font-bold">${fromName} ➔ 給付/歸還給 ${toName}</div>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="font-black text-amber-600">${displayAmountText}</span>
@@ -974,12 +926,11 @@
                         </div>
                     `;
                 } else {
-                    // 一般消費版面
                     const payerName = allProfilesCached.find(p=>p.uid===e.payer)?.name || "未知";
                     row.innerHTML = `
                         <div class="space-y-0.5">
                             <div class="font-bold text-slate-700">${e.item}</div>
-                            ${walletMode==='group'?`<div class="text-[9px] text-slate-400 font-bold">墊付: ${payerName} // 攤派: ${e.splitWith ? e.splitWith.map(id=>allProfilesCached.find(p=>p.uid===id)?.name||'成員').join(',') : ''}</div>`:''}
+                            ${walletMode==='group'?`<div class="text-[9px] text-slate-400 font-bold">墊付: ${payerName} // 分攤: ${e.splitWith ? e.splitWith.map(id=>allProfilesCached.find(p=>p.uid===id)?.name||'成員').join(',') : ''}</div>`:''}
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="font-bold ${walletMode==='group'?'text-slate-700':'text-emerald-600'}">${displayAmountText}</span>
@@ -993,7 +944,7 @@
             if(walletMode === 'group') calculateSettlement();
         }
 
-        // 精準金流清算演算法 (融入債務还清平衡)
+        // 債務分帳核心演算法優化（修正代墊清償）
         function calculateSettlement() {
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
             let totalJpy = 0;
@@ -1003,11 +954,11 @@
 
             allExpenses.filter(e => e.mode === 'group').forEach(e => {
                 if(e.type === 'settlement') {
-                    // 還款：還款人平衡值增加（等同幫忙墊付），收款人平衡值減少（等同拿回錢）
+                    // 還款/特別代墊：還款人付出錢 (balance增加，代表少欠一點或拿回錢)，收款人收到了錢 (balance減少)
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
                     if(balance[e.targetUser] !== undefined) balance[e.targetUser] -= e.amount;
                 } else {
-                    // 消費
+                    // 一般團體公帳費用
                     totalJpy += e.amount;
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
                     const count = e.splitWith ? e.splitWith.length : 0;
@@ -1027,11 +978,10 @@
                 const b = balance[p.uid] || 0;
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center py-0.5 border-b border-slate-600/20";
-                div.innerHTML = `<span>${p.name}:</span><span class="${b>=0?'text-emerald-300':'text-rose-300'} font-medium">${b >= 0 ? '應拿回 ¥' + Math.round(b) : '應支付 ¥' + Math.round(Math.abs(b))}</span>`;
+                div.innerHTML = `<span>${p.name}:</span><span class="${b>=0?'text-emerald-300':'text-rose-300'} font-bold">${b >= 0 ? '應拿回 ¥' + Math.round(b) : '應支付 ¥' + Math.round(Math.abs(b))}</span>`;
                 detailContainer.appendChild(div);
             });
 
-            // 最小金流轉帳清算規劃
             const planContainer = document.getElementById('split-settlement-plan');
             planContainer.innerHTML = "";
 
@@ -1051,7 +1001,7 @@
                 const cName = allProfilesCached.find(p=>p.uid===c.uid)?.name || "成員";
 
                 const p = document.createElement('p');
-                p.innerHTML = `💸 <b>${dName}</b> ➔ 匯款給 <b>${cName}</b>：<span class="underline font-bold text-white">¥ ${Math.round(transfer)}</span> (約 NT$ ${Math.round(transfer * rate)})`;
+                p.innerHTML = `💸 <b>${dName}</b> ➔ 應匯款給 <b>${cName}</b>：<span class="underline font-black text-white">¥ ${Math.round(transfer)}</span> (約 NT$ ${Math.round(transfer * rate)})`;
                 planContainer.appendChild(p);
 
                 d.amt -= transfer; c.amt -= transfer;
@@ -1059,10 +1009,10 @@
                 if(c.amt <= 1) j++;
                 planCount++;
             }
-            if(planCount === 0) planContainer.innerHTML = `<p class="text-center text-slate-300 text-[10px]">🎉 公帳平衡，目前互不相欠！</p>`;
+            if(planCount === 0) planContainer.innerHTML = `<p class="text-center text-slate-300 text-[10px]">🎉 目前帳務完全平衡，互不相欠！</p>`;
         }
 
-        // 行前行李打包清單 (LISTS)
+        // 打包清單功能與 [object Object] 災情修復
         window.switchListTab = (tab) => {
             currentListTab = tab;
             document.getElementById('list-tab-carry').className = tab === 'carry' ? "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-emerald-400 text-white" : "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
@@ -1075,7 +1025,12 @@
             ['carry', 'check'].forEach(tab => {
                 onSnapshot(doc(db, "checklists", tab), (docSnap) => {
                     let items = defaultLists[tab];
-                    if(docSnap.exists()) items = docSnap.data().items || [];
+                    if(docSnap.exists()) {
+                        const data = docSnap.data().items;
+                        if (Array.isArray(data)) {
+                            items = data;
+                        }
+                    }
                     renderChecklistPanel(tab, items);
                 });
             });
@@ -1084,20 +1039,23 @@
         function renderChecklistPanel(tab, items) {
             const panel = document.getElementById(`list-container-${tab}`);
             panel.innerHTML = "";
+            
             items.forEach((item, idx) => {
+                // 防呆：如果拿到的資料意外變成物件，轉為字串呈現避免 object Object 災情
+                const itemText = (typeof item === 'object' && item !== null) ? (item.name || JSON.stringify(item)) : item;
+                
                 const row = document.createElement('div');
                 row.className = "flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium";
                 row.innerHTML = `
                     <label class="flex items-center space-x-2.5 cursor-pointer">
                         <input type="checkbox" id="cb-${tab}-${idx}" class="rounded border-slate-300 text-emerald-500 focus:ring-emerald-400 w-4 h-4" onchange="saveChecklistState('${tab}')">
-                        <span class="text-slate-600">${item}</span>
+                        <span class="text-slate-600">${itemText}</span>
                     </label>
                     <button onclick="deleteChecklistItem('${tab}', ${idx})" class="text-slate-300 hover:text-red-400 transition"><i class="fa-solid fa-circle-minus"></i></button>
                 `;
                 panel.appendChild(row);
             });
             
-            // 讀取既有勾選狀態
             const savedState = localStorage.getItem(`chk-${tab}-${currentUid}`);
             if(savedState) {
                 const checkedIndexes = JSON.parse(savedState);
@@ -1121,6 +1079,8 @@
             const docRef = doc(db, "checklists", currentListTab);
             const docSnap = await getDoc(docRef);
             let currentArray = docSnap.exists() ? (docSnap.data().items || []) : [...defaultLists[currentListTab]];
+            
+            // 確保推入的是單純字串
             currentArray.push(txt);
             await setDoc(docRef, { items: currentArray });
             document.getElementById('custom-item-text').value = "";
@@ -1140,7 +1100,7 @@
         window.exportChecklistToText = function() {
             let textOutput = "📋 【京阪神奈關西遊】打包必備清單導出備份\n\n";
             ['carry', 'check'].forEach(tab => {
-                textOutput += tab === 'carry' ? "▼ 【隨身行李清單】皮夾與隨身小包：\n" : "▼ 【托運行李清單】大行李箱放置：\n";
+                textOutput += tab === 'carry' ? "▼ 【隨身行李清單】\n" : "▼ 【托運行李清單】\n";
                 const panel = document.getElementById(`list-container-${tab}`);
                 panel.querySelectorAll("div").forEach(row => {
                     const cb = row.querySelector("input"); const txt = row.querySelector("span").innerText;
@@ -1148,28 +1108,30 @@
                 });
                 textOutput += "\n";
             });
-            navigator.clipboard.writeText(textOutput).then(() => alert("📋 複製成功！打包進度與備忘項目已完整複製到您的剪貼簿。"));
+            navigator.clipboard.writeText(textOutput).then(() => alert("📋 打包項目已完整複製到您的剪貼簿！"));
         };
 
-        // 全域核心使用者狀態監聽與綁定
-        onAuthStateChanged(auth, (user) => {
+        // 監聽使用者登入狀態與資料同步
+        onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUid = user.uid;
                 document.getElementById('login-overlay').classList.add('hidden');
                 
-                // 實時更新成員清單快取
+                // 優先確保基本資料集已被初始化
+                await checkAndSeedItinerary();
+
+                // 實時更新成員清單與大頭貼
                 onSnapshot(collection(db, "users"), (snap) => {
                     allProfilesCached = [];
                     snap.forEach(d => allProfilesCached.push(d.data()));
                     
                     const me = allProfilesCached.find(p => p.uid === currentUid);
                     if(me) {
-                        currentUserProfile = me;
                         document.getElementById('current-user-name').innerText = me.name;
                         document.getElementById('current-user-avatar').src = me.avatar;
                     }
 
-                    // 動態渲染記帳人下拉選單與分攤核取方塊
+                    // 動態渲染記帳人下拉選單
                     const payerSelect = document.getElementById('expense-payer');
                     const splitContainer = document.getElementById('expense-split-checkboxes');
                     const settleFrom = document.getElementById('settle-from');
