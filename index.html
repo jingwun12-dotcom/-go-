@@ -453,7 +453,10 @@
         let walletMode = 'group';
         let walletAction = 'expense';
         let base64Avatar = "";
+        
         let allProfilesCached = [];
+        let globalGroupExpenses = [];  // 🔥 新增：獨立分流保存公帳，不受個人私帳切換干擾
+        let globalPersonalExpenses = []; // 🔥 新增：獨立分流保存私帳
 
         const seedItinerary = {
             1: [
@@ -843,10 +846,19 @@
             loadExpenses();
         };
 
-        let allExpenses = [];
+        // 🔥 核心重構：讓 Firebase 即時監聽與資料流在前端完全分水嶺分流
         onSnapshot(query(collection(db, "expenses"), orderBy("createdAt", "desc")), (snap) => {
-            allExpenses = [];
-            snap.forEach(d => { allExpenses.push({ id: d.id, ...d.data() }); });
+            globalGroupExpenses = [];
+            globalPersonalExpenses = [];
+            snap.forEach(d => { 
+                const data = d.data();
+                const row = { id: d.id, ...data };
+                if (data.mode === 'group') {
+                    globalGroupExpenses.push(row);
+                } else if (data.mode === 'personal') {
+                    globalPersonalExpenses.push(row);
+                }
+            });
             loadExpenses();
         });
 
@@ -904,7 +916,7 @@
             container.innerHTML = "";
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
 
-            const filtered = allExpenses.filter(e => walletMode === 'group' ? e.mode === 'group' : (e.mode === 'personal' && e.uid === currentUid));
+            const filtered = (walletMode === 'group') ? globalGroupExpenses : globalPersonalExpenses.filter(e => e.uid === currentUid);
             
             filtered.forEach(e => {
                 const row = document.createElement('div');
@@ -940,27 +952,30 @@
                 container.appendChild(row);
             });
 
-            if(walletMode === 'group') calculateSettlement();
+            // ⚠️ 修正：無論當前處於什麼分頁，公帳的清算天平一律使用全量獨立的 globalGroupExpenses 陣列
+            calculateSettlement();
         }
 
-        // 🌟 重新優化的分帳與最小金流演算法 (修正代墊不平衡問題)
+        // 🌟 最終精準版：天平收支最小金流配對演算法 (徹底修正借貸抵銷不平衡問題)
         function calculateSettlement() {
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
             let totalJpy = 0;
             const balance = {};
 
+            // 初始化所有成員的天平為 0
             allProfilesCached.forEach(p => balance[p.uid] = 0);
 
-            allExpenses.filter(e => e.mode === 'group').forEach(e => {
+            // 讀取全量公帳陣列進行分配
+            globalGroupExpenses.forEach(e => {
                 if(e.type === 'settlement') {
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
                     if(balance[e.targetUser] !== undefined) balance[e.targetUser] -= e.amount;
                 } else {
                     totalJpy += e.amount;
-                    // 1. 墊付者先拿回他付出去的全部金額
+                    // 1. 代墊人先收回完整墊付款
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
                     
-                    // 2. 參與分攤的人，各自扣除平分後的應付份額
+                    // 2. 參與分攤的受益人，每個人均分扣除應付份額
                     const count = e.splitWith ? e.splitWith.length : 0;
                     if(count > 0) {
                         const share = e.amount / count;
@@ -987,7 +1002,7 @@
             const planContainer = document.getElementById('split-settlement-plan');
             planContainer.innerHTML = "";
 
-            // 深度複製天平數值進行最小金流精準配對
+            // 將債權人與債務人做最小流配對
             const creditors = [], debtors = [];
             for(let uid in balance) {
                 if(balance[uid] > 1) creditors.push({ uid, amt: balance[uid] });
@@ -1003,11 +1018,12 @@
 
                 const transfer = Math.min(d.amt, c.amt);
                 
-                const dName = allProfilesCached.find(p=>p.uid===d.uid)?.name || "成員";
-                const cName = allProfilesCached.find(p=>p.uid===c.uid)?.name || "成員";
+                // 🛠️ 關鍵修正：準確搜尋 allProfilesCached 陣列中與 uid 欄位相同的成員真實人名
+                const dName = allProfilesCached.find(p => p.uid === d.uid)?.name || "成員";
+                const cName = allProfilesCached.find(p => p.uid === c.uid)?.name || "成員";
 
                 const p = document.createElement('p');
-                p.innerHTML = `💸 <b>${dName}</b> ➔ 應匯款給 <b>${cName}</b>：<span class="underline font-black text-white">¥ ${Math.round(transfer)}</span> (約 NT$ ${Math.round(transfer * rate)})`;
+                p.innerHTML = `💸 <b>${dName}</b> ➔ 應匯款給 <b>${cName}</b>：<span class="underline font-black text-white font-mono">¥ ${Math.round(transfer)}</span> (約 NT$ ${Math.round(transfer * rate)})`;
                 planContainer.appendChild(p);
 
                 d.amt -= transfer; c.amt -= transfer;
@@ -1045,7 +1061,6 @@
             panel.innerHTML = "";
             
             items.forEach((item, idx) => {
-                // 🛠️ 強制文字解碼防呆機制：徹底阻斷並展開任何被誤儲存的物件格式
                 let itemText = "";
                 if (typeof item === 'object' && item !== null) {
                     itemText = item.name || item.text || item.title || JSON.stringify(item);
@@ -1053,7 +1068,6 @@
                     itemText = String(item);
                 }
                 
-                // 再次過濾掉意外發生的 [object Object] 字串
                 if(itemText.includes("[object Object]")) {
                     itemText = defaultLists[tab][idx] || "自訂行李項目";
                 }
@@ -1094,7 +1108,6 @@
             const docSnap = await getDoc(docRef);
             let currentArray = docSnap.exists() ? (docSnap.data().items || []) : [...defaultLists[currentListTab]];
             
-            // 確保推入的絕對是純字串，而非物件
             currentArray.push(String(txt));
             await setDoc(docRef, { items: currentArray });
             document.getElementById('custom-item-text').value = "";
@@ -1132,9 +1145,18 @@
                 document.getElementById('login-overlay').classList.add('hidden');
                 await checkAndSeedItinerary();
 
+                // 🌐 全員資料載入與結構化修正
                 onSnapshot(collection(db, "users"), (snap) => {
                     allProfilesCached = [];
-                    snap.forEach(d => allProfilesCached.push(d.data()));
+                    snap.forEach(d => {
+                        const userData = d.data();
+                        // 🛠️ 核心修正：將主鍵 ID 與資料包裝在一起，確保 uid 能夠被成功對比
+                        allProfilesCached.push({
+                            uid: d.id,
+                            name: userData.name || "未命名成員",
+                            avatar: userData.avatar || ""
+                        });
+                    });
                     
                     const me = allProfilesCached.find(p => p.uid === currentUid);
                     if(me) {
