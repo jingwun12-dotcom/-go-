@@ -312,14 +312,14 @@
 
             <div id="panel-group-settlement" class="bg-gradient-to-br from-slate-700 to-slate-800 text-white p-4 rounded-2xl shadow-sm space-y-3">
                 <div class="flex justify-between items-center border-b border-slate-600 pb-1.5">
-                    <h3 class="font-bold text-xs tracking-wider flex items-center"><i class="fa-solid fa-users-viewfinder mr-1.5 text-emerald-400"></i>全團最小金流清算總結 (含還款折抵)</h3>
+                    <h3 class="font-bold text-xs tracking-wider flex items-center"><i class="fa-solid fa-memberProfiles-viewfinder mr-1.5 text-emerald-400"></i>全團最小金流清算總結 (含還款折抵)</h3>
                     <span class="text-[9px] bg-slate-600 px-2 py-0.5 rounded-md text-slate-300">精準計算</span>
                 </div>
                 <div class="text-xs space-y-1 text-slate-200">
                     <div class="flex justify-between"><span>公帳總計消費 (日幣):</span><span id="split-total-jpy" class="font-bold text-emerald-300">¥ 0</span></div>
                     <div class="flex justify-between border-b border-slate-600/50 pb-1"><span>公帳總計消費 (台幣):</span><span id="split-total-twd" class="font-bold">NT$ 0</span></div>
                 </div>
-                <div id="split-users-detail" class="space-y-1 text-[11px] pt-1"></div>
+                <div id="split-memberProfiles-detail" class="space-y-1 text-[11px] pt-1"></div>
                 <div class="text-[10px] text-amber-300 font-bold pt-1.5"><i class="fa-solid fa-money-bill-transfer"></i> 最終最少金流匯款指南：</div>
                 <div id="split-settlement-plan" class="bg-slate-900/30 p-2.5 rounded-xl text-[11px] text-emerald-200 space-y-1 leading-relaxed border border-slate-600/30"></div>
             </div>
@@ -624,7 +624,7 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, e, p);
                 const av = base64Avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2310B981'/><text x='50%' y='60%' text-anchor='middle' fill='white' font-size='32' font-weight='bold'>Go</text></svg>";
-                await setDoc(doc(db, "users", cred.user.uid), { name: n, avatar: av, uid: cred.user.uid });
+                await setDoc(doc(db, "memberProfiles", cred.user.uid), { name: n, avatar: av, uid: cred.user.uid });
             } catch(err) { alert("註冊失敗: " + err.message); }
         };
 
@@ -636,7 +636,7 @@
             try {
                 const user = auth.currentUser;
                 if(user) {
-                    await deleteDoc(doc(db, "users", currentUid));
+                    await deleteDoc(doc(db, "memberProfiles", currentUid));
                     await deleteUser(user);
                     alert("🗑️ 帳號已成功註冊銷戶！");
                     window.location.reload();
@@ -1059,7 +1059,7 @@
             document.getElementById('split-total-jpy').innerText = `¥ ${Math.round(totalJpy)}`;
             document.getElementById('split-total-twd').innerText = `NT$ ${Math.round(totalJpy * rate)}`;
 
-            const detailContainer = document.getElementById('split-users-detail');
+            const detailContainer = document.getElementById('split-memberProfiles-detail');
             detailContainer.innerHTML = "";
             allProfilesCached.forEach(p => {
                 const b = balance[p.uid] || 0;
@@ -1216,7 +1216,7 @@
                 await checkAndSeedItinerary();
 
                 // 🌐 全員資料載入與結構化修正
-                onSnapshot(collection(db, "users"), (snap) => {
+                onSnapshot(collection(db, "memberProfiles"), (snap) => {
                     allProfilesCached = [];
                     snap.forEach(d => {
                         const userData = d.data();
