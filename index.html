@@ -267,7 +267,7 @@
                         <input type="text" id="expense-item" placeholder="品項（如：藥妝）" class="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none col-span-2">
                         <select id="expense-currency" class="bg-slate-50 border border-slate-100 px-1 py-2 rounded-xl text-xs focus:outline-none text-center font-bold text-slate-600">
                             <option value="JPY">日幣 (¥)</option>
-                            <option value="TWD">台幣 (NT$)</option>
+                            <option value="TWD" selected>台幣 (NT$)</option>
                         </select>
                     </div>
                     <input type="number" id="expense-amount" placeholder="請輸入對應幣別金額" class="w-full bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none font-bold">
@@ -287,7 +287,7 @@
 
                 <div id="wallet-action-settle-form" class="space-y-3 hidden">
                     <div class="p-3 bg-amber-50 border border-amber-100 text-slate-600 rounded-xl text-[11px] leading-relaxed">
-                        💡 <b>債務清償功能：</b>當某成員已私下還錢或給付特定金額給另一人時（例如：吳先墊付給雯），可在下方建立還款設定，系統將會直接平衡沖銷清算帳務。
+                        💡 <b>債務清償功能：</b>當某成員已私下還錢或給付特定金額給另一人時，可在下方建立還款設定，系統將會直接平衡沖銷清算帳務。
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -303,7 +303,7 @@
                         <input type="number" id="settle-amount" placeholder="金額" class="bg-slate-50 border border-slate-100 px-3 py-2 rounded-xl text-xs focus:outline-none col-span-2 font-bold">
                         <select id="settle-currency" class="bg-slate-50 border border-slate-100 px-1 py-2 rounded-xl text-xs focus:outline-none text-center font-bold text-slate-600">
                             <option value="JPY">日幣 (¥)</option>
-                            <option value="TWD">台幣 (NT$)</option>
+                            <option value="TWD" selected>台幣 (NT$)</option>
                         </select>
                     </div>
                     <button onclick="addSettlementRecord()" class="w-full bg-slate-700 text-white text-xs py-2 rounded-xl font-bold shadow-sm transition">儲存並建立債務還款平衡 🤝</button>
@@ -313,7 +313,7 @@
             <div id="panel-group-settlement" class="bg-gradient-to-br from-slate-700 to-slate-800 text-white p-4 rounded-2xl shadow-sm space-y-3">
                 <div class="flex justify-between items-center border-b border-slate-600 pb-1.5">
                     <h3 class="font-bold text-xs tracking-wider flex items-center"><i class="fa-solid fa-users-viewfinder mr-1.5 text-emerald-400"></i>全團最小金流清算總結 (含還款折抵)</h3>
-                    <span class="text-[9px] bg-slate-600 px-2 py-0.5 rounded-md text-slate-300">一目了然</span>
+                    <span class="text-[9px] bg-slate-600 px-2 py-0.5 rounded-md text-slate-300">精準計算</span>
                 </div>
                 <div class="text-xs space-y-1 text-slate-200">
                     <div class="flex justify-between"><span>公帳總計消費 (日幣):</span><span id="split-total-jpy" class="font-bold text-emerald-300">¥ 0</span></div>
@@ -455,7 +455,6 @@
         let base64Avatar = "";
         let allProfilesCached = [];
 
-        // 精典原始行程資料庫 (初次上傳 Firebase 共享使用)
         const seedItinerary = {
             1: [
                 { time: "06:30", title: "第一航廈集合", desc: "準備搭乘星宇航空，確認手提行李無違禁品。", duration: 95, trans: "✈️ 飛機" },
@@ -501,10 +500,10 @@
                 { time: "08:30", title: "飯店出發", desc: "神戶精華景點一日遊，出發！", duration: 30, trans: "🚇 地鐵/火車" },
                 { time: "09:00", title: "景點：風見雞館 + 北野異人館街", desc: "漫步充滿歐式風情的街道，欣賞特殊的風見雞鐵製氣象標。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C65", duration: 110, trans: "🚇 地鐵/火車" },
                 { time: "10:50", title: "景點：生田神社", desc: "走訪具備1800年歷史的古老神社，以求桃花姻緣水占卜聞名。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C66", duration: 70, trans: "👣 步行" },
-                { time: "12:00", title: "午餐：Mouriya (モーリヤ)", desc: "朝聖頂級老字號神戶牛排鐵板燒，外酥內嫩、入口即化。", duration: 120, trans: "🚇 地鐵/火車" },
+                { time: "12:00", title: "午餐：Mouriya (モーリヤ)", desc: "朝盛頂級老字號神戶牛排鐵板燒，外酥內嫩、入口即化。", duration: 120, trans: "🚇 地鐵/火車" },
                 { time: "14:00", title: "景點：姬路城 (白鷺城)", desc: "日本第一名城、世界文化遺產！雪白牆面如白鷺展翅般優美。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C67", duration: 180, trans: "🚇 地鐵/火車" },
                 { time: "17:00", title: "景點：好古園", desc: "姬路城旁的日式池泉迴遊式庭園，四季風情皆具禪意。", map: "https://maps.app.goo.gl/wS3x8bZ6mGgXWq6C68", duration: 90, trans: "🚇 地鐵/火車" },
-                { time: "18:30", title: "晚餐：神戶港周邊美食或燒肉", desc: "返回三宮 or 港區自由享用美食。", duration: 150, trans: "👣 步行" },
+                { time: "18:30", title: "晚餐：神戶港周邊美食 or 燒肉", desc: "返回三宮 or 港區自由享用美食。", duration: 150, trans: "👣 步行" },
                 { time: "21:00", title: "返回飯店", desc: "返回 Villa Fontaine 神戶三宮。" }
             ],
             6: [
@@ -524,7 +523,6 @@
             check: ["換洗衣物", "充電線/豆腐頭", "盥洗保養品", "雨傘/雨衣", "休閒走路鞋", "空行李袋(裝戰利品)"]
         };
 
-        // 檢查並初始化雲端行程表共享機制
         async function checkAndSeedItinerary() {
             const snap = await getDocs(collection(db, "itinerary"));
             if (snap.empty) {
@@ -545,7 +543,6 @@
             }
         }
 
-        // 頁籤切換與顏色變換修復
         window.switchTab = (tabId) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`sec-${tabId}`).classList.remove('hidden');
@@ -554,8 +551,11 @@
                 el.classList.remove('text-emerald-500');
                 el.classList.add('text-slate-400');
             });
-            document.getElementById(`nav-${tabId}`).classList.add('text-emerald-500');
-            document.getElementById(`nav-${tabId}`).classList.remove('text-slate-400');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if(activeNav) {
+                activeNav.classList.add('text-emerald-500');
+                activeNav.classList.remove('text-slate-400');
+            }
         };
 
         window.toggleAuthMode = (mode) => {
@@ -635,7 +635,6 @@
             loadScheduleData();
         };
 
-        // 行程雲端同步渲染
         let customPlansList = [];
         onSnapshot(query(collection(db, "itinerary"), orderBy("time", "asc")), (snap) => {
             customPlansList = [];
@@ -765,7 +764,7 @@
             document.getElementById('plan-important').checked = false;
         };
 
-        // 景點深度誌 (GUIDE)
+        // GUIDE 景點深度誌
         let customGuidesList = [];
         onSnapshot(collection(db, "guides"), (snap) => {
             customGuidesList = [];
@@ -809,7 +808,7 @@
 
         window.deleteGuide = async (id) => { if(confirm("確定刪除此隨行筆記？")) await deleteDoc(doc(db, "guides", id)); };
 
-        // 錢包核心帳務動作與計算機
+        // 錢包拆帳核心動作
         window.switchWalletAction = (action) => {
             walletAction = action;
             document.getElementById('wallet-action-expense-form').classList.toggle('hidden', action !== 'expense');
@@ -898,7 +897,7 @@
             alert("🤝 債務清償記錄建立並平衡成功！");
         };
 
-        window.deleteExpense = async (id) => { if(confirm("確定刪除此筆記帳明細？")) await deleteDoc(doc(db, "expenses", id)); };
+        window.deleteExpense = async (id) => { if(confirm("確定刪除此筆記記帳明細？")) await deleteDoc(doc(db, "expenses", id)); };
 
         function loadExpenses() {
             const container = document.getElementById('expense-list');
@@ -944,7 +943,7 @@
             if(walletMode === 'group') calculateSettlement();
         }
 
-        // 債務分帳核心演算法優化（修正代墊清償）
+        // 🌟 重新優化的分帳與最小金流演算法 (修正代墊不平衡問題)
         function calculateSettlement() {
             const rate = parseFloat(document.getElementById('fx-rate').value) || 0.212;
             let totalJpy = 0;
@@ -954,17 +953,20 @@
 
             allExpenses.filter(e => e.mode === 'group').forEach(e => {
                 if(e.type === 'settlement') {
-                    // 還款/特別代墊：還款人付出錢 (balance增加，代表少欠一點或拿回錢)，收款人收到了錢 (balance減少)
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
                     if(balance[e.targetUser] !== undefined) balance[e.targetUser] -= e.amount;
                 } else {
-                    // 一般團體公帳費用
                     totalJpy += e.amount;
+                    // 1. 墊付者先拿回他付出去的全部金額
                     if(balance[e.payer] !== undefined) balance[e.payer] += e.amount;
+                    
+                    // 2. 參與分攤的人，各自扣除平分後的應付份額
                     const count = e.splitWith ? e.splitWith.length : 0;
                     if(count > 0) {
                         const share = e.amount / count;
-                        e.splitWith.forEach(uid => { if(balance[uid] !== undefined) balance[uid] -= share; });
+                        e.splitWith.forEach(uid => { 
+                            if(balance[uid] !== undefined) balance[uid] -= share; 
+                        });
                     }
                 }
             });
@@ -985,6 +987,7 @@
             const planContainer = document.getElementById('split-settlement-plan');
             planContainer.innerHTML = "";
 
+            // 深度複製天平數值進行最小金流精準配對
             const creditors = [], debtors = [];
             for(let uid in balance) {
                 if(balance[uid] > 1) creditors.push({ uid, amt: balance[uid] });
@@ -995,6 +998,9 @@
             let i = 0, j = 0;
             while(i < debtors.length && j < creditors.length) {
                 const d = debtors[i]; const c = creditors[j];
+                if (d.amt <= 1) { i++; continue; }
+                if (c.amt <= 1) { j++; continue; }
+
                 const transfer = Math.min(d.amt, c.amt);
                 
                 const dName = allProfilesCached.find(p=>p.uid===d.uid)?.name || "成員";
@@ -1012,7 +1018,7 @@
             if(planCount === 0) planContainer.innerHTML = `<p class="text-center text-slate-300 text-[10px]">🎉 目前帳務完全平衡，互不相欠！</p>`;
         }
 
-        // 打包清單功能與 [object Object] 災情修復
+        // 打包準備清單（強制文字解析，消滅物體亂碼代碼）
         window.switchListTab = (tab) => {
             currentListTab = tab;
             document.getElementById('list-tab-carry').className = tab === 'carry' ? "w-1/2 py-1.5 rounded-lg text-center text-xs font-bold bg-emerald-400 text-white" : "w-1/2 py-1.5 rounded-lg text-center text-xs font-semibold text-slate-400";
@@ -1027,9 +1033,7 @@
                     let items = defaultLists[tab];
                     if(docSnap.exists()) {
                         const data = docSnap.data().items;
-                        if (Array.isArray(data)) {
-                            items = data;
-                        }
+                        if (Array.isArray(data)) items = data;
                     }
                     renderChecklistPanel(tab, items);
                 });
@@ -1041,9 +1045,19 @@
             panel.innerHTML = "";
             
             items.forEach((item, idx) => {
-                // 防呆：如果拿到的資料意外變成物件，轉為字串呈現避免 object Object 災情
-                const itemText = (typeof item === 'object' && item !== null) ? (item.name || JSON.stringify(item)) : item;
+                // 🛠️ 強制文字解碼防呆機制：徹底阻斷並展開任何被誤儲存的物件格式
+                let itemText = "";
+                if (typeof item === 'object' && item !== null) {
+                    itemText = item.name || item.text || item.title || JSON.stringify(item);
+                } else {
+                    itemText = String(item);
+                }
                 
+                // 再次過濾掉意外發生的 [object Object] 字串
+                if(itemText.includes("[object Object]")) {
+                    itemText = defaultLists[tab][idx] || "自訂行李項目";
+                }
+
                 const row = document.createElement('div');
                 row.className = "flex justify-between items-center p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium";
                 row.innerHTML = `
@@ -1080,8 +1094,8 @@
             const docSnap = await getDoc(docRef);
             let currentArray = docSnap.exists() ? (docSnap.data().items || []) : [...defaultLists[currentListTab]];
             
-            // 確保推入的是單純字串
-            currentArray.push(txt);
+            // 確保推入的絕對是純字串，而非物件
+            currentArray.push(String(txt));
             await setDoc(docRef, { items: currentArray });
             document.getElementById('custom-item-text').value = "";
         };
@@ -1111,16 +1125,13 @@
             navigator.clipboard.writeText(textOutput).then(() => alert("📋 打包項目已完整複製到您的剪貼簿！"));
         };
 
-        // 監聽使用者登入狀態與資料同步
+        // 登入流監聽與下拉選單初始化
         onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUid = user.uid;
                 document.getElementById('login-overlay').classList.add('hidden');
-                
-                // 優先確保基本資料集已被初始化
                 await checkAndSeedItinerary();
 
-                // 實時更新成員清單與大頭貼
                 onSnapshot(collection(db, "users"), (snap) => {
                     allProfilesCached = [];
                     snap.forEach(d => allProfilesCached.push(d.data()));
@@ -1131,7 +1142,6 @@
                         document.getElementById('current-user-avatar').src = me.avatar;
                     }
 
-                    // 動態渲染記帳人下拉選單
                     const payerSelect = document.getElementById('expense-payer');
                     const splitContainer = document.getElementById('expense-split-checkboxes');
                     const settleFrom = document.getElementById('settle-from');
